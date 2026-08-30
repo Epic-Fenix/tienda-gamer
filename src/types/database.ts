@@ -71,6 +71,8 @@ export interface Coupon {
     discount_type: DiscountType;
     discount_value: number;
     is_active: boolean;
+    max_uses?: number | null;   // null = usos ilimitados
+    uses_count?: number;        // veces ya utilizado
     created_at?: string;
 }
 

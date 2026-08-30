@@ -9,6 +9,7 @@ export default function CouponManager() {
     const [code, setCode] = useState('');
     const [discountType, setDiscountType] = useState<DiscountType>('percent');
     const [discountValue, setDiscountValue] = useState('');
+    const [maxUses, setMaxUses] = useState('');
     const [saving, setSaving] = useState(false);
 
     const fetchCoupons = async () => {
@@ -29,6 +30,8 @@ export default function CouponManager() {
             code: normalized,
             discount_type: discountType,
             discount_value: Number(discountValue) || 0,
+            max_uses: maxUses.trim() !== '' ? Number(maxUses) : null,
+            uses_count: 0,
             is_active: true,
         });
         if (error) {
@@ -37,6 +40,7 @@ export default function CouponManager() {
             setCode('');
             setDiscountValue('');
             setDiscountType('percent');
+            setMaxUses('');
             fetchCoupons();
         }
         setSaving(false);
@@ -73,6 +77,10 @@ export default function CouponManager() {
                     <label className="text-slate-400 block mb-1">Valor</label>
                     <input type="number" step="0.01" min="0" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} required className="w-24 bg-slate-950 border border-slate-800 rounded-lg p-2 text-white" placeholder={discountType === 'percent' ? '10' : '50'} />
                 </div>
+                <div>
+                    <label className="text-slate-400 block mb-1">Máx. usos</label>
+                    <input type="number" min="1" value={maxUses} onChange={(e) => setMaxUses(e.target.value)} className="w-24 bg-slate-950 border border-slate-800 rounded-lg p-2 text-white" placeholder="∞" />
+                </div>
                 <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
                     {saving ? 'Creando...' : 'Crear cupón'}
                 </button>
@@ -87,6 +95,9 @@ export default function CouponManager() {
                             <span className="font-mono font-bold text-indigo-400 text-sm">{c.code}</span>
                             <span className="text-xs text-slate-300">
                                 {c.discount_type === 'percent' ? `${c.discount_value}% de descuento` : `S/. ${Number(c.discount_value).toFixed(2)} de descuento`}
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                                Usos: {c.uses_count ?? 0}{c.max_uses != null ? ` / ${c.max_uses}` : ' (ilimitado)'}
                             </span>
                             <button onClick={() => toggleActive(c)} className={`ml-auto px-2 py-1 rounded text-[10px] font-bold transition ${c.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'}`}>
                                 {c.is_active ? 'Activo' : 'Inactivo'}

@@ -57,7 +57,14 @@ export default function CartDrawer() {
             .eq('is_active', true)
             .limit(1);
         const found = (data as Coupon[] | null)?.[0];
-        if (found) {
+        if (!found) {
+            setAppliedCoupon(null);
+            setCouponMsg({ ok: false, text: 'Cupón inválido o inactivo.' });
+        } else if (found.max_uses != null && (found.uses_count ?? 0) >= found.max_uses) {
+            // Cupón agotó su límite de usos.
+            setAppliedCoupon(null);
+            setCouponMsg({ ok: false, text: 'Este cupón ya alcanzó su límite de usos.' });
+        } else {
             setAppliedCoupon(found);
             setCouponMsg({
                 ok: true,
@@ -65,9 +72,6 @@ export default function CartDrawer() {
                     ? `Cupón aplicado: ${found.discount_value}% de descuento`
                     : `Cupón aplicado: S/. ${formatSoles(found.discount_value)} de descuento`,
             });
-        } else {
-            setAppliedCoupon(null);
-            setCouponMsg({ ok: false, text: 'Cupón inválido o inactivo.' });
         }
         setCouponLoading(false);
     };
@@ -130,6 +134,14 @@ export default function CartDrawer() {
             const { data } = await supabase.from('products').select('stock').eq('id', it.product_id).single();
             const current = Number(data?.stock) || 0;
             await supabase.from('products').update({ stock: Math.max(0, current - it.quantity) }).eq('id', it.product_id);
+        }
+
+        // Registra el uso del cupón (incrementa uses_count).
+        if (appliedCoupon) {
+            await supabase
+                .from('coupons')
+                .update({ uses_count: (appliedCoupon.uses_count ?? 0) + 1 })
+                .eq('id', appliedCoupon.id);
         }
 
         setSuccess({ code: orderCode, reservation, pending, isFull: fullPayment });
