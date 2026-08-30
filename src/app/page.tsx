@@ -8,6 +8,34 @@ import BackorderModal from '@/components/BackorderModal';
 
 const FACEBOOK_URL = 'https://www.facebook.com/share/1BrzFx93Wa/?mibextid=wwXIfr';
 
+type Banner = {
+  title: string;
+  subtitle: string;
+  gradient: string;
+  cta?: string;
+  href?: string;
+};
+
+const BANNERS: Banner[] = [
+  {
+    title: '¡Nuevos ingresos PS5!',
+    subtitle: 'Los últimos lanzamientos ya disponibles en stock. ¡No te quedes sin el tuyo!',
+    gradient: 'from-indigo-600 via-purple-600 to-blue-700',
+  },
+  {
+    title: 'Preventas exclusivas',
+    subtitle: 'Asegura tu juego favorito con solo el 20% de separación y recógelo el día de estreno.',
+    gradient: 'from-rose-600 via-pink-600 to-fuchsia-700',
+  },
+  {
+    title: 'Únete a la comunidad',
+    subtitle: 'Sorteos, ofertas flash y novedades primero en nuestro Facebook oficial.',
+    gradient: 'from-blue-600 via-sky-600 to-cyan-600',
+    cta: 'Ir a Facebook',
+    href: FACEBOOK_URL,
+  },
+];
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +43,18 @@ export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState('Todas');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
+  const [slide, setSlide] = useState(0);
+
+  const nextSlide = () => setSlide((s) => (s + 1) % BANNERS.length);
+  const prevSlide = () => setSlide((s) => (s - 1 + BANNERS.length) % BANNERS.length);
+
+  // Auto-avance del carrusel cada 5s (se reinicia el temporizador al cambiar de slide)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlide((s) => (s + 1) % BANNERS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slide]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -83,6 +123,64 @@ export default function Home() {
           </span>
         </div>
       </header>
+
+      {/* Carrusel de Banners */}
+      <section className="max-w-6xl mx-auto mb-8">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-800 shadow-xl">
+          <div
+            className="flex transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(-${slide * 100}%)` }}
+          >
+            {BANNERS.map((banner, i) => (
+              <div
+                key={i}
+                className={`min-w-full h-48 md:h-60 bg-gradient-to-r ${banner.gradient} px-8 md:px-14 flex flex-col justify-center`}
+              >
+                <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow-lg">{banner.title}</h2>
+                <p className="text-white/90 text-sm md:text-base mt-2 max-w-xl">{banner.subtitle}</p>
+                {banner.href && (
+                  <a
+                    href={banner.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex w-max items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition"
+                  >
+                    {banner.cta}
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Flechas de navegación */}
+          <button
+            onClick={prevSlide}
+            aria-label="Anterior"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 text-white text-xl transition"
+          >
+            ‹
+          </button>
+          <button
+            onClick={nextSlide}
+            aria-label="Siguiente"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/60 text-white text-xl transition"
+          >
+            ›
+          </button>
+
+          {/* Indicadores (dots) */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+            {BANNERS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlide(i)}
+                aria-label={`Ir al banner ${i + 1}`}
+                className={`h-2.5 rounded-full transition-all ${i === slide ? 'w-6 bg-white' : 'w-2.5 bg-white/40 hover:bg-white/70'}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Buscador y Filtros */}
       <section className="max-w-6xl mx-auto mb-8 space-y-4">

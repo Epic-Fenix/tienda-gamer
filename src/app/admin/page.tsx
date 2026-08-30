@@ -5,11 +5,21 @@ import { supabase } from '@/lib/supabase';
 import { Product, Order, Backorder, BackorderStatus } from '@/types/database';
 import Link from 'next/link';
 
+// PIN de acceso al panel (configurable por variable de entorno).
+const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
+const AUTH_KEY = 'tg_admin_auth';
+
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [backorders, setBackorders] = useState<Backorder[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Autenticación simple por PIN
+    const [authorized, setAuthorized] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
+    const [pinInput, setPinInput] = useState('');
+    const [pinError, setPinError] = useState(false);
 
     // Formulario nuevo producto
     const [showModal, setShowModal] = useState(false);
@@ -21,6 +31,46 @@ export default function AdminDashboard() {
     const [minPct, setMinPct] = useState('20');
     const [imageUrl, setImageUrl] = useState('');
     const [saving, setSaving] = useState(false);
+
+    // Edición / eliminación de productos
+    const [editProduct, setEditProduct] = useState<Product | null>(null);
+    const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', description: '', image_url: '' });
+    const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+
+    // Lee la sesión guardada al montar (localStorage no existe en SSR).
+    useEffect(() => {
+        try {
+            if (localStorage.getItem(AUTH_KEY) === 'ok') setAuthorized(true);
+        } catch {
+            // Ignorar entornos sin localStorage
+        }
+        setAuthChecked(true);
+    }, []);
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (pinInput === ADMIN_PIN) {
+            setAuthorized(true);
+            setPinError(false);
+            setPinInput('');
+            try {
+                localStorage.setItem(AUTH_KEY, 'ok');
+            } catch {
+                // Ignorar
+            }
+        } else {
+            setPinError(true);
+        }
+    };
+
+    const handleLogout = () => {
+        try {
+            localStorage.removeItem(AUTH_KEY);
+        } catch {
+            // Ignorar
+        }
+        setAuthorized(false);
+    };
 
     const fetchData = async () => {
         const { data: prodData } = await supabase.from('products').select('*').order('name', { ascending: true });
@@ -38,6 +88,7 @@ export default function AdminDashboard() {
     };
 
     useEffect(() => {
+        if (!authorized) return; // No cargar datos sin sesión válida
         fetchData();
 
         const channel = supabase
@@ -58,7 +109,7 @@ export default function AdminDashboard() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [authorized]);
 
     const handleUpdateStock = async (id: string, currentStock: number, delta: number) => {
         const nextStock = Math.max(0, currentStock + delta);
@@ -121,6 +172,63 @@ export default function AdminDashboard() {
         setSaving(false);
     };
 
+    const openEditModal = (p: Product) => {
+        setEditProduct(p);
+        setEditForm({
+            name: p.name,
+            price: String(p.price),
+            stock: String(p.stock),
+            description: p.description ?? '',
+            image_url: p.image_url ?? '',
+        });
+    };
+
+    const handleUpdateProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editProduct) return;
+        setSaving(true);
+
+        const updates = {
+            name: editForm.name,
+            price: Number(editForm.price),
+            stock: Number(editForm.stock),
+            description: editForm.description.trim() !== '' ? editForm.description.trim() : null,
+            image_url: editForm.image_url.trim() !== '' ? editForm.image_url.trim() : null,
+        };
+
+        // Optimistic UI
+        setProducts((prev) =>
+            prev.map((p) =>
+                p.id === editProduct.id
+                    ? { ...p, name: updates.name, price: updates.price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url }
+                    : p
+            )
+        );
+
+        const { error } = await supabase.from('products').update(updates).eq('id', editProduct.id);
+        if (error) {
+            alert('Error al actualizar el producto: ' + error.message);
+            fetchData();
+        }
+        setEditProduct(null);
+        setSaving(false);
+    };
+
+    const handleDeleteProduct = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
+
+        // Optimistic UI
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) {
+            alert('Error al eliminar el producto: ' + error.message);
+            fetchData();
+        }
+        setDeleteTarget(null);
+    };
+
     // KPIs reactivos: se recalculan al cambiar productos, órdenes o backorders.
     const kpis = useMemo(() => {
         const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
@@ -170,6 +278,45 @@ export default function AdminDashboard() {
         );
     };
 
+    // Evita el parpadeo del candado antes de leer localStorage
+    if (!authChecked) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Cargando...</div>;
+
+    // Pantalla de bloqueo (PIN Gate)
+    if (!authorized) {
+        return (
+            <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+                <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+                    <div className="text-center mb-6">
+                        <div className="w-14 h-14 rounded-full bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center text-2xl mb-3">🔒</div>
+                        <h1 className="text-lg font-black text-white">Panel de Administración</h1>
+                        <p className="text-xs text-slate-400 mt-1">Ingresa el PIN de acceso para continuar.</p>
+                    </div>
+                    <form onSubmit={handleLogin} className="space-y-3">
+                        <input
+                            autoFocus
+                            type="password"
+                            inputMode="numeric"
+                            value={pinInput}
+                            onChange={(e) => {
+                                setPinInput(e.target.value);
+                                setPinError(false);
+                            }}
+                            placeholder="••••••"
+                            className="w-full text-center tracking-[0.5em] bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-lg focus:outline-none focus:border-indigo-500"
+                        />
+                        {pinError && <p className="text-xs text-rose-400 text-center">PIN incorrecto. Inténtalo de nuevo.</p>}
+                        <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition">
+                            Ingresar
+                        </button>
+                    </form>
+                    <Link href="/" className="block text-center text-xs text-slate-500 hover:text-slate-300 mt-5 transition">
+                        ← Volver al catálogo
+                    </Link>
+                </div>
+            </main>
+        );
+    }
+
     if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Cargando panel...</div>;
 
     return (
@@ -186,6 +333,9 @@ export default function AdminDashboard() {
                         </Link>
                         <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
                             + Nuevo Producto
+                        </button>
+                        <button onClick={handleLogout} className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition">
+                            Cerrar Sesión
                         </button>
                     </div>
                 </header>
@@ -237,7 +387,8 @@ export default function AdminDashboard() {
                                     <th className="pb-3">Categoría / Plat.</th>
                                     <th className="pb-3">Precio</th>
                                     <th className="pb-3 text-center">Stock</th>
-                                    <th className="pb-3 text-right">Ajuste</th>
+                                    <th className="pb-3 text-center">Ajuste</th>
+                                    <th className="pb-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/60">
@@ -258,9 +409,13 @@ export default function AdminDashboard() {
                                                 {item.stock} unid.
                                             </span>
                                         </td>
-                                        <td className="py-3 text-right space-x-1">
+                                        <td className="py-3 text-center space-x-1 whitespace-nowrap">
                                             <button onClick={() => handleUpdateStock(item.id, item.stock, -1)} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold">-1</button>
                                             <button onClick={() => handleUpdateStock(item.id, item.stock, 1)} className="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 rounded font-bold">+1</button>
+                                        </td>
+                                        <td className="py-3 text-right space-x-1 whitespace-nowrap">
+                                            <button onClick={() => openEditModal(item)} className="px-2.5 py-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white rounded font-bold transition">Editar</button>
+                                            <button onClick={() => setDeleteTarget(item)} className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded font-bold transition">Eliminar</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -434,6 +589,62 @@ export default function AdminDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Editar Producto */}
+            {editProduct && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                        <h3 className="text-lg font-bold text-white mb-4">Editar: <span className="text-indigo-400">{editProduct.name}</span></h3>
+                        <form onSubmit={handleUpdateProduct} className="space-y-3 text-xs">
+                            <div>
+                                <label className="text-slate-400 block mb-1">Nombre del Producto</label>
+                                <input required type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
+                            </div>
+                            <div>
+                                <label className="text-slate-400 block mb-1">Descripción</label>
+                                <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white resize-none" placeholder="Descripción del producto" />
+                            </div>
+                            <div>
+                                <label className="text-slate-400 block mb-1">URL de la Imagen</label>
+                                <input type="url" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="https://ejemplo.com/caratula.jpg" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Precio (S/.)</label>
+                                    <input required type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Stock</label>
+                                    <input required type="number" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
+                                </div>
+                            </div>
+                            <div className="flex gap-2 pt-4">
+                                <button type="button" onClick={() => setEditProduct(null)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition">Cancelar</button>
+                                <button type="submit" disabled={saving} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
+                                    {saving ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Confirmar Eliminación */}
+            {deleteTarget && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center">
+                        <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center text-2xl mb-3">🗑️</div>
+                        <h3 className="text-lg font-bold text-white mb-1">¿Eliminar producto?</h3>
+                        <p className="text-xs text-slate-400 mb-5">
+                            Se eliminará <strong className="text-white">{deleteTarget.name}</strong> de forma permanente. Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-2">
+                            <button onClick={() => setDeleteTarget(null)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">Cancelar</button>
+                            <button onClick={handleDeleteProduct} className="w-1/2 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition">Sí, eliminar</button>
+                        </div>
                     </div>
                 </div>
             )}
