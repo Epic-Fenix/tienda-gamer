@@ -5,6 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/database';
 import ReservationModal from '@/components/ReservationModal';
 import BackorderModal from '@/components/BackorderModal';
+import CartDrawer from '@/components/CartDrawer';
+import SocialProofToasts from '@/components/SocialProofToasts';
+import { useCart } from '@/context/CartContext';
+
+type SortOption = 'recientes' | 'precio-asc' | 'precio-desc';
 
 const FACEBOOK_URL = 'https://www.facebook.com/share/1BrzFx93Wa/?mibextid=wwXIfr';
 
@@ -45,6 +50,14 @@ export default function Home() {
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
   const [slide, setSlide] = useState(0);
 
+  // Filtros avanzados
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [onlyInStock, setOnlyInStock] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('recientes');
+
+  const { addItem } = useCart();
+
   const nextSlide = () => setSlide((s) => (s + 1) % BANNERS.length);
   const prevSlide = () => setSlide((s) => (s - 1 + BANNERS.length) % BANNERS.length);
 
@@ -84,7 +97,10 @@ export default function Home() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((item) => {
+    const min = minPrice.trim() !== '' ? Number(minPrice) : null;
+    const max = maxPrice.trim() !== '' ? Number(maxPrice) : null;
+
+    const result = products.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -94,9 +110,19 @@ export default function Home() {
         (item.platform && item.platform.toLowerCase().includes(filter)) ||
         (item.category && item.category.toLowerCase().includes(filter));
 
-      return matchesSearch && matchesFilter;
+      const matchesMin = min === null || item.price >= min;
+      const matchesMax = max === null || item.price <= max;
+      const matchesStock = !onlyInStock || item.stock > 0;
+
+      return matchesSearch && matchesFilter && matchesMin && matchesMax && matchesStock;
     });
-  }, [products, searchTerm, selectedFilter]);
+
+    const sorted = [...result];
+    if (sortBy === 'precio-asc') sorted.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'precio-desc') sorted.sort((a, b) => b.price - a.price);
+    // 'recientes' conserva el orden de llegada (ya viene por created_at desc)
+    return sorted;
+  }, [products, searchTerm, selectedFilter, minPrice, maxPrice, onlyInStock, sortBy]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-8">
@@ -207,6 +233,62 @@ export default function Home() {
           </div>
           <span className="text-xs text-slate-500">{filteredProducts.length} productos encontrados</span>
         </div>
+
+        {/* Filtros avanzados */}
+        <div className="flex flex-wrap items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-400 font-semibold">Precio S/.</span>
+            <input
+              type="number"
+              min="0"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Mín"
+              className="w-20 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+            />
+            <span className="text-slate-600 text-xs">—</span>
+            <input
+              type="number"
+              min="0"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Máx"
+              className="w-20 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={onlyInStock}
+              onChange={(e) => setOnlyInStock(e.target.checked)}
+              className="w-4 h-4 accent-indigo-600"
+            />
+            <span className="text-[11px] text-slate-400 font-semibold">Solo en stock</span>
+          </label>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-[11px] text-slate-400 font-semibold">Ordenar:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="recientes">Más recientes</option>
+              <option value="precio-asc">Precio: Menor a Mayor</option>
+              <option value="precio-desc">Precio: Mayor a Menor</option>
+            </select>
+          </div>
+
+          {(minPrice || maxPrice || onlyInStock || sortBy !== 'recientes') && (
+            <button
+              onClick={() => { setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); }}
+              className="text-[11px] text-slate-500 hover:text-white underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
       </section>
 
       {/* Grilla de Productos */}
@@ -247,9 +329,22 @@ export default function Home() {
                     <span className="text-lg font-black text-white">S/. {item.price}</span>
                   </div>
                   {item.stock > 0 ? (
-                    <button onClick={() => setSelectedProduct(item)} className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition">
-                      Separar ({item.min_reservation_pct}%)
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => addItem(item)}
+                        title="Agregar al carrito"
+                        aria-label="Agregar al carrito"
+                        className="p-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-lg transition"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                          <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                        </svg>
+                      </button>
+                      <button onClick={() => setSelectedProduct(item)} className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition">
+                        Separar ({item.min_reservation_pct}%)
+                      </button>
+                    </div>
                   ) : (
                     <button onClick={() => setBackorderProduct(item)} className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">
                       Encargar
@@ -292,6 +387,10 @@ export default function Home() {
 
       {selectedProduct && <ReservationModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
       {backorderProduct && <BackorderModal product={backorderProduct} onClose={() => setBackorderProduct(null)} />}
+
+      {/* Carrito flotante y notificaciones de prueba social */}
+      <CartDrawer />
+      <SocialProofToasts />
     </main>
   );
 }

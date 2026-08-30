@@ -31,6 +31,7 @@ export default function AdminDashboard() {
     const [minPct, setMinPct] = useState('20');
     const [imageUrl, setImageUrl] = useState('');
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -138,6 +139,27 @@ export default function AdminDashboard() {
         if (error) {
             alert('Error al actualizar el encargo: ' + error.message);
             fetchData(); // Revierte si falló
+        }
+    };
+
+    // Sube un archivo de imagen al bucket público `product-images` y devuelve la URL.
+    const uploadImage = async (file: File, setter: (url: string) => void) => {
+        setUploading(true);
+        try {
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+            const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const { error } = await supabase.storage.from('product-images').upload(path, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
+            if (error) {
+                alert('Error al subir la imagen: ' + error.message + '\n(¿Existe el bucket público "product-images" en Supabase Storage?)');
+                return;
+            }
+            const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+            setter(data.publicUrl);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -555,8 +577,18 @@ export default function AdminDashboard() {
                                 <input required type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="Ej. EA Sports FC 25" />
                             </div>
                             <div>
-                                <label className="text-slate-400 block mb-1">URL de la Imagen (Opcional)</label>
-                                <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="https://ejemplo.com/caratula.jpg" />
+                                <label className="text-slate-400 block mb-1">Imagen del Producto (Opcional)</label>
+                                <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="Pega una URL o sube un archivo ↓" />
+                                <div className="flex items-center gap-2 mt-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, setImageUrl); }}
+                                        className="text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-indigo-600/30 file:text-indigo-300 file:text-[11px] file:font-bold hover:file:bg-indigo-600 hover:file:text-white"
+                                    />
+                                    {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
+                                    {imageUrl && !uploading && <img src={imageUrl} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -584,8 +616,8 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex gap-2 pt-4">
                                 <button type="button" onClick={() => setShowModal(false)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition">Cancelar</button>
-                                <button type="submit" disabled={saving} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
-                                    {saving ? 'Guardando...' : 'Crear Producto'}
+                                <button type="submit" disabled={saving || uploading} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
+                                    {saving ? 'Guardando...' : uploading ? 'Subiendo imagen...' : 'Crear Producto'}
                                 </button>
                             </div>
                         </form>
@@ -608,8 +640,18 @@ export default function AdminDashboard() {
                                 <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white resize-none" placeholder="Descripción del producto" />
                             </div>
                             <div>
-                                <label className="text-slate-400 block mb-1">URL de la Imagen</label>
-                                <input type="url" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="https://ejemplo.com/caratula.jpg" />
+                                <label className="text-slate-400 block mb-1">Imagen del Producto</label>
+                                <input type="url" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="Pega una URL o sube un archivo ↓" />
+                                <div className="flex items-center gap-2 mt-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, (url) => setEditForm((prev) => ({ ...prev, image_url: url }))); }}
+                                        className="text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-indigo-600/30 file:text-indigo-300 file:text-[11px] file:font-bold hover:file:bg-indigo-600 hover:file:text-white"
+                                    />
+                                    {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
+                                    {editForm.image_url && !uploading && <img src={editForm.image_url} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -623,8 +665,8 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex gap-2 pt-4">
                                 <button type="button" onClick={() => setEditProduct(null)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition">Cancelar</button>
-                                <button type="submit" disabled={saving} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
-                                    {saving ? 'Guardando...' : 'Guardar Cambios'}
+                                <button type="submit" disabled={saving || uploading} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
+                                    {saving ? 'Guardando...' : uploading ? 'Subiendo imagen...' : 'Guardar Cambios'}
                                 </button>
                             </div>
                         </form>

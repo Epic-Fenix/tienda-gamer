@@ -17,10 +17,22 @@ export interface Product {
 
 export type OrderStatus = 'reserved' | 'completed' | 'cancelled';
 
+// Ítem de una orden multi-producto (carrito). Se guarda como JSON en orders.items.
+export interface OrderItem {
+    product_id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image_url?: string | null;
+    min_reservation_pct?: number;
+    // Solo para uso en el cliente (no se persiste): tope de unidades disponibles.
+    stock?: number;
+}
+
 export interface Order {
     id: string;
     order_code: string;
-    product_id: string;
+    product_id: string | null;
     customer_name: string;
     customer_phone: string;
     customer_email?: string | null;
@@ -33,6 +45,7 @@ export interface Order {
     status: OrderStatus | string;
     created_at?: string;
     product?: Product;
+    items?: OrderItem[] | null;
 }
 
 export type BackorderStatus = 'pending' | 'notified' | 'completed';

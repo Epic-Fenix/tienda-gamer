@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
 import Link from 'next/link';
+import PaymentInfo from '@/components/PaymentInfo';
 
 export default function OrderPage({ params }: { params: Promise<{ code: string }> }) {
     const resolvedParams = use(params);
@@ -42,7 +43,19 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                 </div>
 
                 <div className="bg-slate-950 p-4 rounded-xl text-left text-xs space-y-2 mb-6 border border-slate-800/80">
-                    <p className="text-slate-400">Producto: <span className="text-white font-semibold">{product?.name}</span></p>
+                    {Array.isArray(order.items) && order.items.length > 0 ? (
+                        <div className="space-y-1">
+                            <p className="text-slate-500 uppercase text-[10px] font-bold tracking-wider mb-1">Productos ({order.items.length})</p>
+                            {order.items.map((it: { product_id: string; name: string; quantity: number; price: number }) => (
+                                <div key={it.product_id} className="flex justify-between gap-2">
+                                    <span className="text-white">{it.quantity}× {it.name}</span>
+                                    <span className="text-slate-400">S/. {(it.price * it.quantity).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-slate-400">Producto: <span className="text-white font-semibold">{product?.name}</span></p>
+                    )}
                     <p className="text-slate-400">Cliente: <span className="text-white">{order.customer_name}</span></p>
                     <p className="text-slate-400">Entrega: <span className="text-white uppercase font-semibold">{order.delivery_type === 'pickup' ? 'Recojo en Local' : 'Envío'}</span></p>
                     <div className="border-t border-slate-800 pt-2 flex justify-between font-bold">
@@ -53,6 +66,11 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                         <span>Saldo a Pagar:</span>
                         <span>S/. {order.pending_amount}</span>
                     </div>
+                </div>
+
+                {/* Datos de pago Yape / Plin / Transferencias */}
+                <div className="bg-slate-950 p-4 rounded-xl mb-6 border border-slate-800/80">
+                    <PaymentInfo orderCode={order.order_code} amount={Number(order.paid_amount) || 0} />
                 </div>
 
                 <Link href="/" className="block w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition">
