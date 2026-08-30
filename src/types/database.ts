@@ -42,11 +42,36 @@ export interface Order {
     paid_amount: number;
     pending_amount: number;
     is_full_payment?: boolean;
+    coupon_code?: string | null;
+    discount_amount?: number;
     pickup_deadline?: string;
     status: OrderStatus | string;
     created_at?: string;
     product?: Product;
     items?: OrderItem[] | null;
+}
+
+export interface Banner {
+    id: string;
+    title: string;
+    subtitle?: string | null;
+    image_url?: string | null;
+    button_text?: string | null;
+    link_url?: string | null;
+    is_active: boolean;
+    order_index: number;
+    created_at?: string;
+}
+
+export type DiscountType = 'percent' | 'fixed';
+
+export interface Coupon {
+    id: string;
+    code: string;
+    discount_type: DiscountType;
+    discount_value: number;
+    is_active: boolean;
+    created_at?: string;
 }
 
 export type BackorderStatus = 'pending' | 'notified' | 'completed';

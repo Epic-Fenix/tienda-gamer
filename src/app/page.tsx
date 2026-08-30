@@ -7,21 +7,26 @@ import ReservationModal from '@/components/ReservationModal';
 import BackorderModal from '@/components/BackorderModal';
 import CartDrawer from '@/components/CartDrawer';
 import SocialProofToasts from '@/components/SocialProofToasts';
+import OrderTracker from '@/components/OrderTracker';
 import { useCart } from '@/context/CartContext';
+import { Banner } from '@/types/database';
 
 type SortOption = 'recientes' | 'precio-asc' | 'precio-desc';
 
 const FACEBOOK_URL = 'https://www.facebook.com/share/1BrzFx93Wa/?mibextid=wwXIfr';
 
-type Banner = {
+// Diapositiva del carrusel (unifica banners de BD y los de respaldo local).
+type Slide = {
   title: string;
   subtitle: string;
-  gradient: string;
+  gradient?: string;
+  image_url?: string | null;
   cta?: string;
   href?: string;
 };
 
-const BANNERS: Banner[] = [
+// Banners por defecto (respaldo cuando la tabla `banners` está vacía).
+const DEFAULT_SLIDES: Slide[] = [
   {
     title: '¡Nuevos ingresos PS5!',
     subtitle: 'Los últimos lanzamientos ya disponibles en stock. ¡No te quedes sin el tuyo!',
@@ -49,6 +54,7 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
   const [slide, setSlide] = useState(0);
+  const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
 
   // Filtros avanzados
   const [minPrice, setMinPrice] = useState('');
@@ -58,16 +64,54 @@ export default function Home() {
 
   const { addItem } = useCart();
 
-  const nextSlide = () => setSlide((s) => (s + 1) % BANNERS.length);
-  const prevSlide = () => setSlide((s) => (s - 1 + BANNERS.length) % BANNERS.length);
+  const nextSlide = () => setSlide((s) => (s + 1) % slides.length);
+  const prevSlide = () => setSlide((s) => (s - 1 + slides.length) % slides.length);
+
+  // Carga los banners activos desde Supabase (en tiempo real); si no hay, usa los de respaldo.
+  useEffect(() => {
+    const loadBanners = async () => {
+      const { data } = await supabase
+        .from('banners')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
+      if (data && data.length > 0) {
+        setSlides(
+          (data as Banner[]).map((b) => ({
+            title: b.title,
+            subtitle: b.subtitle ?? '',
+            image_url: b.image_url,
+            cta: b.button_text ?? undefined,
+            href: b.link_url ?? undefined,
+          }))
+        );
+      } else {
+        setSlides(DEFAULT_SLIDES); // Fallback si la tabla queda vacía
+      }
+      setSlide(0);
+    };
+
+    loadBanners();
+
+    // Suscripción realtime: cualquier alta/edición/activación refresca la portada al instante.
+    const channel = supabase
+      .channel('banners-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => loadBanners())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Auto-avance del carrusel cada 5s (se reinicia el temporizador al cambiar de slide)
   useEffect(() => {
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
-      setSlide((s) => (s + 1) % BANNERS.length);
+      setSlide((s) => (s + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [slide]);
+  }, [slide, slides.length]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -132,6 +176,7 @@ export default function Home() {
           <p className="text-slate-400 text-xs mt-1">Stock en vivo desde tienda física y web</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <OrderTracker />
           <a
             href={FACEBOOK_URL}
             target="_blank"
@@ -157,23 +202,27 @@ export default function Home() {
             className="flex transition-transform duration-700 ease-out"
             style={{ transform: `translateX(-${slide * 100}%)` }}
           >
-            {BANNERS.map((banner, i) => (
+            {slides.map((banner, i) => (
               <div
                 key={i}
-                className={`min-w-full h-48 md:h-60 bg-gradient-to-r ${banner.gradient} px-8 md:px-14 flex flex-col justify-center`}
+                className={`relative min-w-full h-48 md:h-60 px-8 md:px-14 flex flex-col justify-center overflow-hidden ${banner.image_url ? 'bg-slate-800' : `bg-gradient-to-r ${banner.gradient || 'from-indigo-600 via-purple-600 to-blue-700'}`}`}
+                style={banner.image_url ? { backgroundImage: `url(${banner.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
-                <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow-lg">{banner.title}</h2>
-                <p className="text-white/90 text-sm md:text-base mt-2 max-w-xl">{banner.subtitle}</p>
-                {banner.href && (
-                  <a
-                    href={banner.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex w-max items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition"
-                  >
-                    {banner.cta}
-                  </a>
-                )}
+                {banner.image_url && <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/20" />}
+                <div className="relative z-10">
+                  <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow-lg">{banner.title}</h2>
+                  <p className="text-white/90 text-sm md:text-base mt-2 max-w-xl">{banner.subtitle}</p>
+                  {banner.href && banner.cta && (
+                    <a
+                      href={banner.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex w-max items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition"
+                    >
+                      {banner.cta}
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -196,7 +245,7 @@ export default function Home() {
 
           {/* Indicadores (dots) */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-            {BANNERS.map((_, i) => (
+            {slides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setSlide(i)}

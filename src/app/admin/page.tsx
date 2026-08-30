@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Product, Order, Backorder, BackorderStatus } from '@/types/database';
 import Link from 'next/link';
+import BannerManager from '@/components/admin/BannerManager';
+import CouponManager from '@/components/admin/CouponManager';
 
 // PIN de acceso al panel (configurable por variable de entorno).
 const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
@@ -564,6 +566,12 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 </section>
+
+                {/* Gestor de banners del carrusel */}
+                <BannerManager />
+
+                {/* Gestor de cupones de descuento */}
+                <CouponManager />
             </div>
 
             {/* Modal Nuevo Producto */}

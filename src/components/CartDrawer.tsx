@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { formatSoles } from '@/lib/payment';
 import PaymentInfo from '@/components/PaymentInfo';
+import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface SuccessOrder {
@@ -24,11 +25,58 @@ export default function CartDrawer() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
 
+    // Cupón de descuento
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+    const [couponMsg, setCouponMsg] = useState<{ ok: boolean; text: string } | null>(null);
+    const [couponLoading, setCouponLoading] = useState(false);
+
     const round2 = (n: number) => Number(n.toFixed(2));
 
-    // Montos a mostrar según la modalidad elegida.
-    const payNow = fullPayment ? total : reservationTotal;
-    const payLater = fullPayment ? 0 : pendingTotal;
+    // Descuento aplicado por el cupón.
+    const discount = appliedCoupon
+        ? appliedCoupon.discount_type === 'percent'
+            ? (total * appliedCoupon.discount_value) / 100
+            : Math.min(appliedCoupon.discount_value, total)
+        : 0;
+    const netTotal = Math.max(0, total - discount);
+
+    // Montos a mostrar según la modalidad elegida (sobre el total con descuento).
+    const payNow = fullPayment ? netTotal : Math.min(reservationTotal, netTotal);
+    const payLater = round2(netTotal - payNow);
+
+    const applyCoupon = async () => {
+        const codeInput = couponCode.trim().toUpperCase();
+        if (codeInput === '') return;
+        setCouponLoading(true);
+        setCouponMsg(null);
+        const { data } = await supabase
+            .from('coupons')
+            .select('*')
+            .ilike('code', codeInput)
+            .eq('is_active', true)
+            .limit(1);
+        const found = (data as Coupon[] | null)?.[0];
+        if (found) {
+            setAppliedCoupon(found);
+            setCouponMsg({
+                ok: true,
+                text: found.discount_type === 'percent'
+                    ? `Cupón aplicado: ${found.discount_value}% de descuento`
+                    : `Cupón aplicado: S/. ${formatSoles(found.discount_value)} de descuento`,
+            });
+        } else {
+            setAppliedCoupon(null);
+            setCouponMsg({ ok: false, text: 'Cupón inválido o inactivo.' });
+        }
+        setCouponLoading(false);
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode('');
+        setCouponMsg(null);
+    };
 
     const handleConfirm = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,9 +87,9 @@ export default function CartDrawer() {
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
-        const totalAmount = round2(total);
-        const reservation = fullPayment ? totalAmount : round2(reservationTotal);
-        const pending = fullPayment ? 0 : round2(totalAmount - reservation);
+        const totalAmount = round2(netTotal);
+        const reservation = fullPayment ? totalAmount : round2(Math.min(reservationTotal, netTotal));
+        const pending = round2(totalAmount - reservation);
 
         // Ítems que se guardan como JSON en la orden (sin el campo interno `stock`).
         const orderItems = items.map((i) => ({
@@ -66,6 +114,8 @@ export default function CartDrawer() {
             pickup_deadline: deadline.toISOString(),
             status: 'reserved',
             is_full_payment: fullPayment,
+            coupon_code: appliedCoupon?.code ?? null,
+            discount_amount: round2(discount),
             items: orderItems,
         });
 
@@ -92,6 +142,8 @@ export default function CartDrawer() {
         setName('');
         setPhone('');
         setEmail('');
+        setFullPayment(false);
+        removeCoupon();
         closeCart();
     };
 
@@ -204,8 +256,41 @@ export default function CartDrawer() {
                                             </button>
                                         </div>
                                     </div>
+                                    {/* Cupón de descuento */}
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Cupón de descuento</p>
+                                        {appliedCoupon ? (
+                                            <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
+                                                <span className="text-xs font-bold text-emerald-400 font-mono">{appliedCoupon.code}</span>
+                                                <button type="button" onClick={removeCoupon} className="text-[11px] text-slate-400 hover:text-white">Quitar</button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={couponCode}
+                                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                    placeholder="Ingresa tu código"
+                                                    className="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-white uppercase placeholder:normal-case focus:outline-none focus:border-indigo-500"
+                                                />
+                                                <button type="button" onClick={applyCoupon} disabled={couponLoading} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition disabled:opacity-50">
+                                                    {couponLoading ? '...' : 'Aplicar'}
+                                                </button>
+                                            </div>
+                                        )}
+                                        {couponMsg && (
+                                            <p className={`text-[11px] mt-1 ${couponMsg.ok ? 'text-emerald-400' : 'text-rose-400'}`}>{couponMsg.text}</p>
+                                        )}
+                                    </div>
+
                                     <div className="text-xs space-y-1">
-                                        <div className="flex justify-between text-slate-400"><span>Total ({count} art.):</span><span className="font-bold text-white">S/. {formatSoles(total)}</span></div>
+                                        <div className="flex justify-between text-slate-400"><span>Subtotal ({count} art.):</span><span className="font-bold text-white">S/. {formatSoles(total)}</span></div>
+                                        {discount > 0 && (
+                                            <>
+                                                <div className="flex justify-between text-emerald-400"><span>Descuento cupón:</span><span className="font-bold">− S/. {formatSoles(discount)}</span></div>
+                                                <div className="flex justify-between text-slate-300"><span>Total con descuento:</span><span className="font-bold">S/. {formatSoles(netTotal)}</span></div>
+                                            </>
+                                        )}
                                         <div className="flex justify-between text-indigo-400"><span>{fullPayment ? 'A pagar ahora (100%):' : 'Abono a separar:'}</span><span className="font-bold">S/. {formatSoles(payNow)}</span></div>
                                         <div className="flex justify-between text-slate-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(payLater)}</span></div>
                                     </div>
