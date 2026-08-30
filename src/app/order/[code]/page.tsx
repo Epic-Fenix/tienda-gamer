@@ -59,7 +59,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                     <p className="text-slate-400">Cliente: <span className="text-white">{order.customer_name}</span></p>
                     <p className="text-slate-400">Entrega: <span className="text-white uppercase font-semibold">{order.delivery_type === 'pickup' ? 'Recojo en Local' : 'Envío'}</span></p>
                     <div className="border-t border-slate-800 pt-2 flex justify-between font-bold">
-                        <span className="text-emerald-400">Abono Separación:</span>
+                        <span className="text-emerald-400">{order.is_full_payment ? 'Pago Total:' : 'Abono Separación:'}</span>
                         <span>S/. {order.paid_amount}</span>
                     </div>
                     <div className="flex justify-between font-bold text-amber-400">
@@ -70,7 +70,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
 
                 {/* Datos de pago Yape / Plin / Transferencias */}
                 <div className="bg-slate-950 p-4 rounded-xl mb-6 border border-slate-800/80">
-                    <PaymentInfo orderCode={order.order_code} amount={Number(order.paid_amount) || 0} />
+                    <PaymentInfo orderCode={order.order_code} amount={Number(order.paid_amount) || 0} isFullPayment={!!order.is_full_payment} />
                 </div>
 
                 <Link href="/" className="block w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition">

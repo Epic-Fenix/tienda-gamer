@@ -11,6 +11,7 @@ interface SuccessOrder {
     code: string;
     reservation: number;
     pending: number;
+    isFull: boolean;
 }
 
 export default function CartDrawer() {
@@ -19,10 +20,15 @@ export default function CartDrawer() {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
+    const [fullPayment, setFullPayment] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
 
     const round2 = (n: number) => Number(n.toFixed(2));
+
+    // Montos a mostrar según la modalidad elegida.
+    const payNow = fullPayment ? total : reservationTotal;
+    const payLater = fullPayment ? 0 : pendingTotal;
 
     const handleConfirm = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,8 +40,8 @@ export default function CartDrawer() {
         deadline.setHours(deadline.getHours() + 48);
 
         const totalAmount = round2(total);
-        const reservation = round2(reservationTotal);
-        const pending = round2(totalAmount - reservation);
+        const reservation = fullPayment ? totalAmount : round2(reservationTotal);
+        const pending = fullPayment ? 0 : round2(totalAmount - reservation);
 
         // Ítems que se guardan como JSON en la orden (sin el campo interno `stock`).
         const orderItems = items.map((i) => ({
@@ -59,6 +65,7 @@ export default function CartDrawer() {
             pending_amount: pending,
             pickup_deadline: deadline.toISOString(),
             status: 'reserved',
+            is_full_payment: fullPayment,
             items: orderItems,
         });
 
@@ -75,7 +82,7 @@ export default function CartDrawer() {
             await supabase.from('products').update({ stock: Math.max(0, current - it.quantity) }).eq('id', it.product_id);
         }
 
-        setSuccess({ code: orderCode, reservation, pending });
+        setSuccess({ code: orderCode, reservation, pending, isFull: fullPayment });
         setLoading(false);
     };
 
@@ -132,10 +139,10 @@ export default function CartDrawer() {
                                     <QRCodeSVG value={`https://tu-dominio.vercel.app/admin/verify/${success.code}`} size={150} />
                                 </div>
                                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
-                                    <div className="flex justify-between font-bold"><span className="text-emerald-400">Abono a separar:</span><span>S/. {formatSoles(success.reservation)}</span></div>
+                                    <div className="flex justify-between font-bold"><span className="text-emerald-400">{success.isFull ? 'Pago total:' : 'Abono a separar:'}</span><span>S/. {formatSoles(success.reservation)}</span></div>
                                     <div className="flex justify-between font-bold text-amber-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(success.pending)}</span></div>
                                 </div>
-                                <PaymentInfo orderCode={success.code} amount={success.reservation} />
+                                <PaymentInfo orderCode={success.code} amount={success.reservation} isFullPayment={success.isFull} />
                                 <button onClick={handleCloseSuccess} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition">
                                     Seguir comprando
                                 </button>
@@ -177,10 +184,30 @@ export default function CartDrawer() {
 
                                 {/* Totales + formulario */}
                                 <div className="border-t border-slate-800 p-5 space-y-3">
+                                    {/* Selector de modalidad de pago */}
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Modalidad de pago</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFullPayment(true)}
+                                                className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${fullPayment ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}
+                                            >
+                                                {fullPayment ? '🔵' : '⚪'} Pagar Total (100%)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFullPayment(false)}
+                                                className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${!fullPayment ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}
+                                            >
+                                                {!fullPayment ? '🔵' : '⚪'} Separar / Adelanto
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="text-xs space-y-1">
                                         <div className="flex justify-between text-slate-400"><span>Total ({count} art.):</span><span className="font-bold text-white">S/. {formatSoles(total)}</span></div>
-                                        <div className="flex justify-between text-indigo-400"><span>Abono a separar:</span><span className="font-bold">S/. {formatSoles(reservationTotal)}</span></div>
-                                        <div className="flex justify-between text-slate-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(pendingTotal)}</span></div>
+                                        <div className="flex justify-between text-indigo-400"><span>{fullPayment ? 'A pagar ahora (100%):' : 'Abono a separar:'}</span><span className="font-bold">S/. {formatSoles(payNow)}</span></div>
+                                        <div className="flex justify-between text-slate-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(payLater)}</span></div>
                                     </div>
                                     <form onSubmit={handleConfirm} className="space-y-2">
                                         <input required type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre completo *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />

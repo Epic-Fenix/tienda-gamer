@@ -41,6 +41,7 @@ export interface Order {
     total_amount: number;
     paid_amount: number;
     pending_amount: number;
+    is_full_payment?: boolean;
     pickup_deadline?: string;
     status: OrderStatus | string;
     created_at?: string;

@@ -1,17 +1,22 @@
 'use client';
 
-import { PAYMENT_INFO, buildComprobanteWhatsappLink, formatSoles } from '@/lib/payment';
+import { PAYMENT_INFO, buildComprobanteWhatsappLink, formatSoles, paymentTypeLabel } from '@/lib/payment';
 
 interface Props {
     orderCode: string;
-    amount: number; // Monto del abono/separación a enviar como comprobante
+    amount: number; // Monto a enviar como comprobante (total o abono según el tipo)
+    isFullPayment?: boolean;
 }
 
-export default function PaymentInfo({ orderCode, amount }: Props) {
+export default function PaymentInfo({ orderCode, amount, isFullPayment = false }: Props) {
     return (
         <div className="text-left">
+            <div className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3 ${isFullPayment ? 'bg-emerald-500/15 text-emerald-400' : 'bg-indigo-500/15 text-indigo-300'}`}>
+                {paymentTypeLabel(isFullPayment)}
+            </div>
             <p className="text-xs text-slate-400 mb-3">
-                Realiza el abono de <span className="font-bold text-emerald-400">S/. {formatSoles(amount)}</span> por
+                Realiza {isFullPayment ? 'el pago total de' : 'el abono de'}{' '}
+                <span className="font-bold text-emerald-400">S/. {formatSoles(amount)}</span> por
                 cualquiera de estos medios y envíanos tu comprobante:
             </p>
 
@@ -56,7 +61,7 @@ export default function PaymentInfo({ orderCode, amount }: Props) {
             </div>
 
             <a
-                href={buildComprobanteWhatsappLink(orderCode, amount)}
+                href={buildComprobanteWhatsappLink(orderCode, amount, isFullPayment)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition"

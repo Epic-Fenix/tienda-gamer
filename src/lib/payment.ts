@@ -15,11 +15,16 @@ export const PAYMENT_INFO = {
 export const formatSoles = (n: number) =>
     n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-// Construye el enlace de WhatsApp para enviar el comprobante con código y monto prellenados.
-export function buildComprobanteWhatsappLink(orderCode: string, amount: number) {
+// Etiqueta legible del tipo de pago.
+export const paymentTypeLabel = (isFullPayment: boolean) =>
+    isFullPayment ? 'Liquidación Total (100%)' : 'Abono de Reserva';
+
+// Construye el enlace de WhatsApp para enviar el comprobante con código, monto y tipo prellenados.
+export function buildComprobanteWhatsappLink(orderCode: string, amount: number, isFullPayment = false) {
     const digits = PAYMENT_INFO.whatsapp.replace(/\D/g, '');
+    const concepto = isFullPayment ? 'la Liquidación Total (100%)' : 'el Abono de Reserva';
     const message =
-        `¡Hola Tienda Gamer! 👋 Adjunto mi comprobante de pago de la reserva ` +
+        `¡Hola Tienda Gamer! 👋 Adjunto mi comprobante de ${concepto} de la orden ` +
         `${orderCode} por S/. ${formatSoles(amount)}. Quedo atento(a) a la confirmación. ¡Gracias!`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
