@@ -2,9 +2,9 @@
 // Los marcados como REEMPLAZAR son placeholders y deben actualizarse antes de publicar.
 export const PAYMENT_INFO = {
     accountHolder: 'Carlos Chafloque',
-    yapePlinNumber: '93979872',
+    yapePlinNumber: '939719872',
     // Número de WhatsApp al que el cliente envía su comprobante.
-    whatsapp: '+51 93979872',
+    whatsapp: '+51 939719872',
     bcp: '191-00000000-0-00', // REEMPLAZAR con tu número de cuenta BCP real
     bcpCci: '', // Opcional: CCI interbancario del BCP
     interbank: '000-0000000000', // REEMPLAZAR con tu número de cuenta Interbank real
