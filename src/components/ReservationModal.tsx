@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/database';
 import { useRouter } from 'next/navigation';
+import { DELIVERY_OPTIONS, isShippingDelivery, DeliveryValue } from '@/lib/site';
 
 interface Props {
     product: Product;
@@ -15,7 +16,7 @@ export default function ReservationModal({ product, onClose }: Props) {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [deliveryType, setDeliveryType] = useState('pickup');
+    const [deliveryType, setDeliveryType] = useState<DeliveryValue>('feria_grau');
     const [address, setAddress] = useState('');
     const [fullPayment, setFullPayment] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ export default function ReservationModal({ product, onClose }: Props) {
             customer_phone: phone,
             customer_email: email.trim() !== '' ? email.trim() : null,
             delivery_type: deliveryType,
-            shipping_address: deliveryType === 'shipping' ? address : null,
+            shipping_address: isShippingDelivery(deliveryType) ? address : null,
             total_amount: product.price,
             paid_amount: payNow,
             pending_amount: payLater,
@@ -114,13 +115,14 @@ export default function ReservationModal({ product, onClose }: Props) {
 
                     <div>
                         <label className="text-xs text-slate-400 block mb-1">Tipo de Entrega</label>
-                        <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <option value="pickup">Recojo en Tienda Física</option>
-                            <option value="shipping">Envío a Domicilio</option>
+                        <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value as DeliveryValue)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                            {DELIVERY_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
                         </select>
                     </div>
 
-                    {deliveryType === 'shipping' && (
+                    {isShippingDelivery(deliveryType) && (
                         <div>
                             <label className="text-xs text-slate-400 block mb-1">Dirección de Envío *</label>
                             <input required type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="Distrito, Calle, Número" />

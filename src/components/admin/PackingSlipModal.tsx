@@ -1,7 +1,7 @@
 'use client';
 
 import { Order, OrderItem } from '@/types/database';
-import { STORE, orderUrl } from '@/lib/site';
+import { STORE, orderUrl, isShippingDelivery, deliveryLabel } from '@/lib/site';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
 
 export default function PackingSlipModal({ order, onClose }: Props) {
     const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
-    const isShipping = order.delivery_type === 'shipping';
+    const isShipping = isShippingDelivery(order.delivery_type);
     const date = order.created_at ? new Date(order.created_at).toLocaleDateString('es-PE') : '';
 
     return (
@@ -62,13 +62,9 @@ export default function PackingSlipModal({ order, onClose }: Props) {
                     {/* Entrega */}
                     <div className="text-xs border border-black rounded p-2">
                         <p className="text-[9px] uppercase font-bold text-gray-500">Modalidad de entrega</p>
-                        {isShipping ? (
-                            <>
-                                <p className="font-bold">ENVÍO A DOMICILIO</p>
-                                <p className="leading-tight">{order.shipping_address || 'Dirección no registrada'}</p>
-                            </>
-                        ) : (
-                            <p className="font-bold">RECOJO EN TIENDA</p>
+                        <p className="font-bold uppercase">{deliveryLabel(order.delivery_type)}</p>
+                        {isShipping && (
+                            <p className="leading-tight">{order.shipping_address || 'Dirección no registrada'}</p>
                         )}
                     </div>
 

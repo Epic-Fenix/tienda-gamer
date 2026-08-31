@@ -50,7 +50,7 @@ export default function AdminDashboard() {
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo' });
+    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '' });
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
     // Etiqueta de envío
@@ -257,6 +257,8 @@ export default function AdminDashboard() {
             description: p.description ?? '',
             image_url: p.image_url ?? '',
             condition: p.condition || 'nuevo',
+            platform: p.platform || '',
+            category: p.category || '',
         });
     };
 
@@ -274,13 +276,15 @@ export default function AdminDashboard() {
             description: editForm.description.trim() !== '' ? editForm.description.trim() : null,
             image_url: editForm.image_url.trim() !== '' ? editForm.image_url.trim() : null,
             condition: editForm.condition,
+            platform: editForm.platform.trim() !== '' ? editForm.platform.trim() : null,
+            category: editForm.category.trim() !== '' ? editForm.category.trim() : null,
         };
 
         // Optimistic UI
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === editProduct.id
-                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition }
+                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition, platform: updates.platform ?? p.platform, category: updates.category ?? p.category }
                     : p
             )
         );
@@ -829,7 +833,33 @@ export default function AdminDashboard() {
                                     {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
                                     {editForm.image_url && !uploading && <img src={editForm.image_url} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
                                 </div>
+                                <p className="text-[10px] text-slate-500 mt-1">Recomendado: 600×900 px (vertical 2:3) · Máx. 500 KB (JPG/WebP)</p>
                                 <CoverSearch query={editForm.name} onSelect={(url) => setEditForm((prev) => ({ ...prev, image_url: url }))} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Plataforma</label>
+                                    <select value={editForm.platform} onChange={(e) => setEditForm({ ...editForm, platform: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white">
+                                        <option value="">— Selecciona —</option>
+                                        <option value="PS5">PS5</option>
+                                        <option value="PS4">PS4</option>
+                                        <option value="Nintendo Switch">Nintendo Switch</option>
+                                        <option value="Xbox">Xbox</option>
+                                        <option value="Consolas">Consolas</option>
+                                        <option value="Accesorios">Accesorios</option>
+                                        <option value="Anime/Coleccionables">Anime/Coleccionables</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Categoría</label>
+                                    <select value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white">
+                                        <option value="">— Selecciona —</option>
+                                        <option value="Juegos">Juegos</option>
+                                        <option value="Consolas">Consolas</option>
+                                        <option value="Mandos">Mandos</option>
+                                        <option value="Figuras">Figuras</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>

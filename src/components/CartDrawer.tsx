@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { formatSoles, PAYMENT_INFO } from '@/lib/payment';
-import { orderUrl } from '@/lib/site';
+import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, DeliveryValue } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
@@ -23,7 +23,7 @@ export default function CartDrawer() {
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [fullPayment, setFullPayment] = useState(false);
-    const [deliveryType, setDeliveryType] = useState<'pickup' | 'shipping'>('pickup');
+    const [deliveryType, setDeliveryType] = useState<DeliveryValue>('feria_grau');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
 
@@ -51,7 +51,7 @@ export default function CartDrawer() {
     const whatsappCheckoutLink = () => {
         const digits = PAYMENT_INFO.whatsapp.replace(/\D/g, '');
         const lista = items.map((i) => `• ${i.quantity}x ${i.name} — S/. ${formatSoles(i.price * i.quantity)}`).join('\n');
-        const entrega = deliveryType === 'pickup' ? 'Recojo en tienda' : 'Envío a domicilio';
+        const entrega = deliveryLabel(deliveryType);
         const msg =
             `🎮 *NUEVO PEDIDO - SCOTT GAMES LIMA*\n` +
             `----------------------------------\n` +
@@ -173,7 +173,7 @@ export default function CartDrawer() {
         setPhone('');
         setEmail('');
         setFullPayment(false);
-        setDeliveryType('pickup');
+        setDeliveryType('feria_grau');
         removeCoupon();
         closeCart();
     };
@@ -337,13 +337,17 @@ export default function CartDrawer() {
                                     {/* Tipo de entrega */}
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Tipo de entrega</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button type="button" onClick={() => setDeliveryType('pickup')} className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${deliveryType === 'pickup' ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}>
-                                                🏬 Recojo en tienda
-                                            </button>
-                                            <button type="button" onClick={() => setDeliveryType('shipping')} className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${deliveryType === 'shipping' ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}>
-                                                🚚 Envío a domicilio
-                                            </button>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {DELIVERY_OPTIONS.map((opt) => (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setDeliveryType(opt.value)}
+                                                    className={`px-3 py-2 rounded-lg text-xs font-bold border text-left transition ${deliveryType === opt.value ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}
+                                                >
+                                                    {deliveryType === opt.value ? '🔵 ' : '⚪ '}{opt.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 

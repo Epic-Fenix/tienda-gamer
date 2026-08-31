@@ -3,7 +3,7 @@
 import { Product } from '@/types/database';
 import { useCart } from '@/context/CartContext';
 import { formatSoles } from '@/lib/payment';
-import { platformStyle } from '@/components/ProductCard';
+import { platformStyle, productKind, conditionText } from '@/components/ProductCard';
 
 interface Props {
     product: Product;
@@ -15,16 +15,17 @@ interface Props {
 export default function ProductQuickView({ product, onClose, onReserve, onBackorder }: Props) {
     const { addItem } = useCart();
     const isSecond = product.condition === 'segunda_mano';
+    const kind = productKind(product);
+    const formato = kind.label === 'CARTUCHO FÍSICO' ? 'Cartucho físico' : kind.label === 'DISCO FÍSICO' ? 'Disco físico' : 'Físico';
     const old = Number(product.old_price) || 0;
     const hasDiscount = old > product.price && product.price > 0;
     const discountPct = hasDiscount ? Math.round(((old - product.price) / old) * 100) : 0;
 
     const specs: { label: string; value: string }[] = [
         { label: 'Plataforma', value: product.platform || product.category },
-        { label: 'Condición', value: isSecond ? 'Seminuevo / Reacondicionado' : 'Nuevo, sellado' },
-        { label: 'Formato', value: 'Físico' },
+        { label: 'Condición', value: conditionText(product) },
+        { label: 'Formato', value: formato },
         { label: 'Garantía', value: isSecond ? 'Revisado y garantizado por tienda' : 'Garantía de tienda' },
-        { label: 'Acepta trueque', value: 'Sí, consúltalo' },
     ];
 
     const trust = [
@@ -46,7 +47,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                             {product.platform || product.category}
                         </span>
                         <span className={`absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-md ${isSecond ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-black'}`}>
-                            {isSecond ? 'Seminuevo' : 'Nuevo'}
+                            {conditionText(product)}
                         </span>
                         {product.image_url ? (
                             // eslint-disable-next-line @next/next/no-img-element

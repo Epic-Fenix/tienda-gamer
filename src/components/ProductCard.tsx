@@ -21,20 +21,40 @@ export function platformStyle(platform?: string): string {
     return 'bg-violet-600 text-white';
 }
 
-// Tipo de producto dinámico (badge): disco físico, hardware o coleccionable.
+// ¿Es una consola? (define si aplica la etiqueta "Reacondicionado").
+export function isConsole(product: Product): boolean {
+    const cat = (product.category || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return /consola/.test(cat) || /consola/.test(name);
+}
+
+// Texto de condición según reglas de negocio:
+// - "Reacondicionado" SOLO para consolas de segunda mano.
+// - Juegos y accesorios usan únicamente "Nuevo" o "Seminuevo".
+export function conditionText(product: Product): string {
+    const isSecond = product.condition === 'segunda_mano';
+    if (!isSecond) return 'Nuevo';
+    return isConsole(product) ? 'Reacondicionado' : 'Seminuevo';
+}
+
+// Tipo de producto dinámico (badge): cartucho, disco, hardware o coleccionable.
 export function productKind(product: Product): { icon: string; label: string } {
     const cat = (product.category || '').toLowerCase();
     const name = (product.name || '').toLowerCase();
     const plat = (product.platform || '').toLowerCase();
+    // Hardware: consolas, mandos y accesorios.
     if (/consola|accesori|mando|control|hardware|audíf|auricular|headset/.test(cat) || /consola|mando|control|dualsense/.test(name)) {
         return { icon: '🕹️', label: 'HARDWARE ORIGINAL' };
     }
+    // Coleccionables: figuras, anime, Funko.
     if (/figura|anime|colec|funko|peluche/.test(cat) || /funko|figura|amiibo/.test(name)) {
         return { icon: '🧸', label: 'COLECCIONABLE' };
     }
-    if (cat.includes('juego') || /ps5|ps4|switch|xbox|nintendo|playstation/.test(plat)) {
-        return { icon: '💿', label: 'DISCO FÍSICO' };
+    // Juegos de Nintendo Switch → cartucho físico.
+    if (/switch|nintendo/.test(plat)) {
+        return { icon: '🎴', label: 'CARTUCHO FÍSICO' };
     }
+    // Juegos de PS5/PS4/Xbox → disco físico.
     return { icon: '💿', label: 'DISCO FÍSICO' };
 }
 
@@ -70,7 +90,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 </span>
                 {/* Estado (sup. derecha) */}
                 <span className={`absolute top-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded shadow ${isSecond ? 'bg-[#8b5cf6] text-white' : 'bg-[#2dd4bf] text-zinc-950'}`}>
-                    {isSecond ? 'Seminuevo' : 'Nuevo'}
+                    {conditionText(product)}
                 </span>
                 {/* Descuento */}
                 {hasDiscount && (

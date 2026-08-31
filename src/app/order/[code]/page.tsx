@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Link from 'next/link';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Order, OrderItem } from '@/types/database';
-import { orderUrl, STORE } from '@/lib/site';
+import { orderUrl, STORE, deliveryLabel } from '@/lib/site';
 import { formatSoles } from '@/lib/payment';
 import { statusLabel, statusToStep } from '@/lib/orderStatus';
 
@@ -123,7 +123,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                     <div className="border-t border-slate-800 mt-3 pt-2 text-slate-400 space-y-0.5">
                         <p>Cliente: <span className="text-white">{order.customer_name}</span></p>
                         <p>WhatsApp: <span className="text-white">{order.customer_phone}</span></p>
-                        <p>Entrega: <span className="text-white uppercase font-semibold">{order.delivery_type === 'pickup' ? 'Recojo en Local' : 'Envío'}</span></p>
+                        <p>Entrega: <span className="text-white font-semibold">{deliveryLabel(order.delivery_type)}</span></p>
                     </div>
                 </div>
 
