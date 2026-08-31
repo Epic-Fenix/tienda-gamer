@@ -6,11 +6,8 @@ import { Product, Order, Backorder, BackorderStatus } from '@/types/database';
 import Link from 'next/link';
 import BannerManager from '@/components/admin/BannerManager';
 import CouponManager from '@/components/admin/CouponManager';
+import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
-
-// PIN de acceso al panel (configurable por variable de entorno).
-const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
-const AUTH_KEY = 'tg_admin_auth';
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -18,11 +15,14 @@ export default function AdminDashboard() {
     const [backorders, setBackorders] = useState<Backorder[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Autenticación simple por PIN
+    // Autenticación con Supabase Auth
     const [authorized, setAuthorized] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
-    const [pinInput, setPinInput] = useState('');
-    const [pinError, setPinError] = useState(false);
+    const [adminEmail, setAdminEmail] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [authError, setAuthError] = useState('');
+    const [authLoading, setAuthLoading] = useState(false);
 
     // Formulario nuevo producto
     const [showModal, setShowModal] = useState(false);
@@ -41,38 +41,45 @@ export default function AdminDashboard() {
     const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', description: '', image_url: '' });
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
-    // Lee la sesión guardada al montar (localStorage no existe en SSR).
+    // Etiqueta de envío
+    const [packingOrder, setPackingOrder] = useState<Order | null>(null);
+
+    // Valida la sesión activa de Supabase Auth al montar y escucha cambios.
     useEffect(() => {
-        try {
-            if (localStorage.getItem(AUTH_KEY) === 'ok') setAuthorized(true);
-        } catch {
-            // Ignorar entornos sin localStorage
-        }
-        setAuthChecked(true);
+        supabase.auth.getSession().then(({ data }) => {
+            setAuthorized(!!data.session);
+            setAdminEmail(data.session?.user?.email ?? '');
+            setAuthChecked(true);
+        });
+
+        const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+            setAuthorized(!!session);
+            setAdminEmail(session?.user?.email ?? '');
+        });
+
+        return () => {
+            sub.subscription.unsubscribe();
+        };
     }, []);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (pinInput === ADMIN_PIN) {
-            setAuthorized(true);
-            setPinError(false);
-            setPinInput('');
-            try {
-                localStorage.setItem(AUTH_KEY, 'ok');
-            } catch {
-                // Ignorar
-            }
+        setAuthLoading(true);
+        setAuthError('');
+        const { error } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+        });
+        if (error) {
+            setAuthError('Credenciales incorrectas o cuenta no autorizada.');
         } else {
-            setPinError(true);
+            setPassword('');
         }
+        setAuthLoading(false);
     };
 
-    const handleLogout = () => {
-        try {
-            localStorage.removeItem(AUTH_KEY);
-        } catch {
-            // Ignorar
-        }
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         setAuthorized(false);
     };
 
@@ -313,35 +320,40 @@ export default function AdminDashboard() {
         );
     };
 
-    // Evita el parpadeo del candado antes de leer localStorage
+    // Evita el parpadeo del login antes de resolver la sesión
     if (!authChecked) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Cargando...</div>;
 
-    // Pantalla de bloqueo (PIN Gate)
+    // Pantalla de login (Supabase Auth)
     if (!authorized) {
         return (
             <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
                 <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
                     <div className="text-center mb-6">
                         <div className="w-14 h-14 rounded-full bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center text-2xl mb-3">🔒</div>
-                        <h1 className="text-lg font-black text-white">Panel de Administración</h1>
-                        <p className="text-xs text-slate-400 mt-1">Ingresa el PIN de acceso para continuar.</p>
+                        <h1 className="text-lg font-black text-white">SCOTT GAMES · Admin</h1>
+                        <p className="text-xs text-slate-400 mt-1">Inicia sesión con tu cuenta de administrador.</p>
                     </div>
                     <form onSubmit={handleLogin} className="space-y-3">
                         <input
                             autoFocus
-                            type="password"
-                            inputMode="numeric"
-                            value={pinInput}
-                            onChange={(e) => {
-                                setPinInput(e.target.value);
-                                setPinError(false);
-                            }}
-                            placeholder="••••••"
-                            className="w-full text-center tracking-[0.5em] bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-lg focus:outline-none focus:border-indigo-500"
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
+                            placeholder="correo@scottgames.com"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
                         />
-                        {pinError && <p className="text-xs text-rose-400 text-center">PIN incorrecto. Inténtalo de nuevo.</p>}
-                        <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition">
-                            Ingresar
+                        <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                            placeholder="Contraseña"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                        />
+                        {authError && <p className="text-xs text-rose-400 text-center">{authError}</p>}
+                        <button type="submit" disabled={authLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50">
+                            {authLoading ? 'Ingresando...' : 'Ingresar'}
                         </button>
                     </form>
                     <Link href="/" className="block text-center text-xs text-slate-500 hover:text-slate-300 mt-5 transition">
@@ -369,6 +381,7 @@ export default function AdminDashboard() {
                         <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
                             + Nuevo Producto
                         </button>
+                        {adminEmail && <span className="self-center text-[11px] text-slate-500 max-w-[160px] truncate" title={adminEmail}>{adminEmail}</span>}
                         <button onClick={handleLogout} className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition">
                             Cerrar Sesión
                         </button>
@@ -492,7 +505,8 @@ export default function AdminDashboard() {
                                                 ))}
                                             </select>
                                         </td>
-                                        <td className="py-3 text-right">
+                                        <td className="py-3 text-right whitespace-nowrap space-x-2">
+                                            <button onClick={() => setPackingOrder(ord)} className="text-xs text-slate-300 hover:text-white" title="Etiqueta de envío">🖨️ Etiqueta</button>
                                             <Link href={`/admin/verify/${ord.order_code}`} className="text-xs text-indigo-400 hover:underline">Verificar →</Link>
                                         </td>
                                     </tr>
@@ -715,6 +729,9 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Etiqueta de envío / packing slip */}
+            {packingOrder && <PackingSlipModal order={packingOrder} onClose={() => setPackingOrder(null)} />}
         </main>
     );
 }
