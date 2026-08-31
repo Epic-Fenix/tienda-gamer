@@ -8,6 +8,7 @@ import BannerManager from '@/components/admin/BannerManager';
 import CouponManager from '@/components/admin/CouponManager';
 import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
+import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 import { SITE_URL } from '@/lib/site';
 
@@ -742,6 +743,7 @@ export default function AdminDashboard() {
                                     {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
                                     {imageUrl && !uploading && <img src={imageUrl} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
                                 </div>
+                                <CoverSearch query={name} onSelect={setImageUrl} />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -818,6 +820,7 @@ export default function AdminDashboard() {
                                     {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
                                     {editForm.image_url && !uploading && <img src={editForm.image_url} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
                                 </div>
+                                <CoverSearch query={editForm.name} onSelect={(url) => setEditForm((prev) => ({ ...prev, image_url: url }))} />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>

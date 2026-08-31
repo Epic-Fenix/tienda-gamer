@@ -379,8 +379,8 @@ export default function Home() {
             {filteredProducts.map((item) => (
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/50 transition">
                 <div>
-                  {/* Foto de Producto */}
-                  <div className="relative w-full h-44 mb-4 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800/80">
+                  {/* Foto de Producto (póster vertical uniforme estilo Eneba) */}
+                  <div className="relative w-full aspect-[3/4] mb-4 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800/80">
                     <span className={`absolute top-2 left-2 z-10 text-[10px] font-bold px-2 py-0.5 rounded-full ${item.condition === 'segunda_mano' ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-white'}`}>
                       {item.condition === 'segunda_mano' ? '🟣 Seminuevo' : '🟢 Nuevo'}
                     </span>
