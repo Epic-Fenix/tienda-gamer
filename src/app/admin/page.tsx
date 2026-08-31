@@ -7,7 +7,9 @@ import Link from 'next/link';
 import BannerManager from '@/components/admin/BannerManager';
 import CouponManager from '@/components/admin/CouponManager';
 import PackingSlipModal from '@/components/admin/PackingSlipModal';
+import TradeInManager from '@/components/admin/TradeInManager';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
+import { SITE_URL } from '@/lib/site';
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -21,16 +23,24 @@ export default function AdminDashboard() {
     const [adminEmail, setAdminEmail] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [authError, setAuthError] = useState('');
     const [authLoading, setAuthLoading] = useState(false);
+    // Recuperación de contraseña
+    const [authView, setAuthView] = useState<'login' | 'forgot'>('login');
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetMsg, setResetMsg] = useState<{ ok: boolean; text: string } | null>(null);
+    const [resetLoading, setResetLoading] = useState(false);
 
     // Formulario nuevo producto
     const [showModal, setShowModal] = useState(false);
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
+    const [costPrice, setCostPrice] = useState('');
     const [stock, setStock] = useState('');
     const [category, setCategory] = useState('Videojuegos');
     const [platform, setPlatform] = useState('PS5');
+    const [condition, setCondition] = useState('nuevo');
     const [minPct, setMinPct] = useState('20');
     const [imageUrl, setImageUrl] = useState('');
     const [saving, setSaving] = useState(false);
@@ -38,7 +48,7 @@ export default function AdminDashboard() {
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', description: '', image_url: '' });
+    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', stock: '', description: '', image_url: '', condition: 'nuevo' });
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
     // Etiqueta de envío
@@ -76,6 +86,21 @@ export default function AdminDashboard() {
             setPassword('');
         }
         setAuthLoading(false);
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setResetLoading(true);
+        setResetMsg(null);
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+            redirectTo: `${SITE_URL}/admin/reset-password`,
+        });
+        if (error) {
+            setResetMsg({ ok: false, text: 'No se pudo enviar el correo. Verifica la dirección.' });
+        } else {
+            setResetMsg({ ok: true, text: 'Te enviamos un enlace de recuperación. Revisa tu correo.' });
+        }
+        setResetLoading(false);
     };
 
     const handleLogout = async () => {
@@ -194,11 +219,12 @@ export default function AdminDashboard() {
             category,
             platform,
             price: Number(price),
+            cost_price: Number(costPrice) || 0,
             stock: Number(stock),
             min_reservation_pct: Number(minPct),
             image_url: imageUrl.trim() !== '' ? imageUrl.trim() : null,
             allow_reservation: true,
-            condition: 'nuevo'
+            condition
         }).select().single();
 
         if (error) {
@@ -208,8 +234,10 @@ export default function AdminDashboard() {
             setShowModal(false);
             setName('');
             setPrice('');
+            setCostPrice('');
             setStock('');
             setImageUrl('');
+            setCondition('nuevo');
         }
         setSaving(false);
     };
@@ -219,9 +247,11 @@ export default function AdminDashboard() {
         setEditForm({
             name: p.name,
             price: String(p.price),
+            cost_price: p.cost_price != null ? String(p.cost_price) : '',
             stock: String(p.stock),
             description: p.description ?? '',
             image_url: p.image_url ?? '',
+            condition: p.condition || 'nuevo',
         });
     };
 
@@ -233,16 +263,18 @@ export default function AdminDashboard() {
         const updates = {
             name: editForm.name,
             price: Number(editForm.price),
+            cost_price: Number(editForm.cost_price) || 0,
             stock: Number(editForm.stock),
             description: editForm.description.trim() !== '' ? editForm.description.trim() : null,
             image_url: editForm.image_url.trim() !== '' ? editForm.image_url.trim() : null,
+            condition: editForm.condition,
         };
 
         // Optimistic UI
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === editProduct.id
-                    ? { ...p, name: updates.name, price: updates.price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url }
+                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition }
                     : p
             )
         );
@@ -279,7 +311,12 @@ export default function AdminDashboard() {
             .filter((o) => o.status === 'reserved')
             .reduce((sum, o) => sum + (Number(o.pending_amount) || 0), 0);
         const waitingClients = backorders.filter((b) => b.status === 'pending').length;
-        return { totalStock, inventoryValue, pendingRevenue, waitingClients };
+        // Ganancia bruta proyectada: (precio - costo) por unidad en stock.
+        const projectedProfit = products.reduce(
+            (sum, p) => sum + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.stock) || 0),
+            0
+        );
+        return { totalStock, inventoryValue, pendingRevenue, waitingClients, projectedProfit };
     }, [products, orders, backorders]);
 
     const money = (n: number) =>
@@ -331,31 +368,79 @@ export default function AdminDashboard() {
                     <div className="text-center mb-6">
                         <div className="w-14 h-14 rounded-full bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center text-2xl mb-3">🔒</div>
                         <h1 className="text-lg font-black text-white">SCOTT GAMES · Admin</h1>
-                        <p className="text-xs text-slate-400 mt-1">Inicia sesión con tu cuenta de administrador.</p>
+                        <p className="text-xs text-slate-400 mt-1">
+                            {authView === 'login' ? 'Inicia sesión con tu cuenta de administrador.' : 'Recupera el acceso a tu cuenta.'}
+                        </p>
                     </div>
-                    <form onSubmit={handleLogin} className="space-y-3">
-                        <input
-                            autoFocus
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
-                            placeholder="correo@scottgames.com"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
-                        />
-                        <input
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
-                            placeholder="Contraseña"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
-                        />
-                        {authError && <p className="text-xs text-rose-400 text-center">{authError}</p>}
-                        <button type="submit" disabled={authLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50">
-                            {authLoading ? 'Ingresando...' : 'Ingresar'}
-                        </button>
-                    </form>
+
+                    {authView === 'login' ? (
+                        <>
+                            <form onSubmit={handleLogin} className="space-y-3">
+                                <input
+                                    autoFocus
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
+                                    placeholder="correo@scottgames.com"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                                />
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        value={password}
+                                        onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                                        placeholder="Contraseña"
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 pr-11 text-white text-sm focus:outline-none focus:border-indigo-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-base"
+                                    >
+                                        {showPassword ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                                {authError && <p className="text-xs text-rose-400 text-center">{authError}</p>}
+                                <button type="submit" disabled={authLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50">
+                                    {authLoading ? 'Ingresando...' : 'Ingresar'}
+                                </button>
+                            </form>
+                            <button
+                                onClick={() => { setAuthView('forgot'); setResetEmail(email); setResetMsg(null); }}
+                                className="block w-full text-center text-xs text-indigo-400 hover:text-indigo-300 mt-3 transition"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <form onSubmit={handleForgotPassword} className="space-y-3">
+                                <input
+                                    autoFocus
+                                    type="email"
+                                    required
+                                    value={resetEmail}
+                                    onChange={(e) => { setResetEmail(e.target.value); setResetMsg(null); }}
+                                    placeholder="correo@scottgames.com"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                                />
+                                {resetMsg && <p className={`text-xs text-center ${resetMsg.ok ? 'text-emerald-400' : 'text-rose-400'}`}>{resetMsg.text}</p>}
+                                <button type="submit" disabled={resetLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50">
+                                    {resetLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
+                                </button>
+                            </form>
+                            <button
+                                onClick={() => { setAuthView('login'); setResetMsg(null); }}
+                                className="block w-full text-center text-xs text-slate-400 hover:text-white mt-3 transition"
+                            >
+                                ← Volver al inicio de sesión
+                            </button>
+                        </>
+                    )}
+
                     <Link href="/" className="block text-center text-xs text-slate-500 hover:text-slate-300 mt-5 transition">
                         ← Volver al catálogo
                     </Link>
@@ -389,7 +474,7 @@ export default function AdminDashboard() {
                 </header>
 
                 {/* KPIs / Métricas */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total en Stock</p>
                         <p className="mt-2 text-2xl font-black text-white">{kpis.totalStock.toLocaleString('es-PE')}</p>
@@ -409,6 +494,11 @@ export default function AdminDashboard() {
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Clientes en Espera</p>
                         <p className="mt-2 text-2xl font-black text-indigo-400">{kpis.waitingClients.toLocaleString('es-PE')}</p>
                         <p className="text-[11px] text-slate-500 mt-1">encargos pendientes</p>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia Bruta Proyectada</p>
+                        <p className="mt-2 text-2xl font-black text-teal-400">S/. {money(kpis.projectedProfit)}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">margen del stock actual</p>
                     </div>
                 </section>
 
@@ -433,7 +523,9 @@ export default function AdminDashboard() {
                                     <th className="pb-3">Imagen</th>
                                     <th className="pb-3">Producto</th>
                                     <th className="pb-3">Categoría / Plat.</th>
-                                    <th className="pb-3">Precio</th>
+                                    <th className="pb-3 text-right">Costo</th>
+                                    <th className="pb-3 text-right">Precio</th>
+                                    <th className="pb-3 text-right">Margen</th>
                                     <th className="pb-3 text-center">Stock</th>
                                     <th className="pb-3 text-center">Ajuste</th>
                                     <th className="pb-3 text-right">Acciones</th>
@@ -449,9 +541,27 @@ export default function AdminDashboard() {
                                                 <div className="w-10 h-10 rounded bg-slate-800 text-[9px] flex items-center justify-center text-slate-500">Sin foto</div>
                                             )}
                                         </td>
-                                        <td className="py-3 font-semibold text-white">{item.name}</td>
+                                        <td className="py-3 font-semibold text-white">
+                                            {item.name}
+                                            <span className={`ml-2 align-middle text-[9px] font-bold px-1.5 py-0.5 rounded ${item.condition === 'segunda_mano' ? 'bg-purple-500/15 text-purple-300' : 'bg-emerald-500/15 text-emerald-300'}`}>
+                                                {item.condition === 'segunda_mano' ? 'Seminuevo' : 'Nuevo'}
+                                            </span>
+                                        </td>
                                         <td className="py-3 text-slate-400">{item.platform || item.category}</td>
-                                        <td className="py-3 font-bold text-slate-200">S/. {item.price}</td>
+                                        <td className="py-3 text-right text-slate-400">S/. {Number(item.cost_price || 0).toFixed(2)}</td>
+                                        <td className="py-3 text-right font-bold text-slate-200">S/. {Number(item.price).toFixed(2)}</td>
+                                        <td className="py-3 text-right">
+                                            {(() => {
+                                                const price = Number(item.price) || 0;
+                                                const cost = Number(item.cost_price) || 0;
+                                                const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
+                                                return (
+                                                    <span className={`font-bold ${margin >= 30 ? 'text-emerald-400' : margin > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                                        {margin.toFixed(0)}%
+                                                    </span>
+                                                );
+                                            })()}
+                                        </td>
                                         <td className="py-3 text-center">
                                             <span className={`px-2.5 py-1 rounded-full font-bold ${item.stock > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
                                                 {item.stock} unid.
@@ -506,7 +616,8 @@ export default function AdminDashboard() {
                                             </select>
                                         </td>
                                         <td className="py-3 text-right whitespace-nowrap space-x-2">
-                                            <button onClick={() => setPackingOrder(ord)} className="text-xs text-slate-300 hover:text-white" title="Etiqueta de envío">🖨️ Etiqueta</button>
+                                            <button onClick={() => setPackingOrder(ord)} className="text-xs text-slate-300 hover:text-white" title="Etiqueta de despacho">📦 Etiqueta</button>
+                                            <a href={`/order/${ord.order_code}`} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline" title="Abrir boleta en nueva pestaña">🧾 Boleta ↗</a>
                                             <Link href={`/admin/verify/${ord.order_code}`} className="text-xs text-indigo-400 hover:underline">Verificar →</Link>
                                         </td>
                                     </tr>
@@ -603,12 +714,15 @@ export default function AdminDashboard() {
 
                 {/* Gestor de cupones de descuento */}
                 <CouponManager />
+
+                {/* Solicitudes de trueque */}
+                <TradeInManager />
             </div>
 
             {/* Modal Nuevo Producto */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-white mb-4">Agregar Producto al Almacén</h3>
                         <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
                             <div>
@@ -639,6 +753,19 @@ export default function AdminDashboard() {
                                     <input required type="text" value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
                                 </div>
                             </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Costo Adquisición (S/.)</label>
+                                    <input type="number" step="0.01" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Condición</label>
+                                    <select value={condition} onChange={(e) => setCondition(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white">
+                                        <option value="nuevo">Nuevo</option>
+                                        <option value="segunda_mano">Segunda mano</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
                                     <label className="text-slate-400 block mb-1">Precio (S/.)</label>
@@ -667,7 +794,7 @@ export default function AdminDashboard() {
             {/* Modal Editar Producto */}
             {editProduct && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-white mb-4">Editar: <span className="text-indigo-400">{editProduct.name}</span></h3>
                         <form onSubmit={handleUpdateProduct} className="space-y-3 text-xs">
                             <div>
@@ -690,6 +817,19 @@ export default function AdminDashboard() {
                                     />
                                     {uploading && <span className="text-[11px] text-amber-400">Subiendo...</span>}
                                     {editForm.image_url && !uploading && <img src={editForm.image_url} alt="preview" className="w-8 h-8 object-cover rounded border border-slate-700" />}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Costo Adquisición (S/.)</label>
+                                    <input type="number" step="0.01" value={editForm.cost_price} onChange={(e) => setEditForm({ ...editForm, cost_price: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Condición</label>
+                                    <select value={editForm.condition} onChange={(e) => setEditForm({ ...editForm, condition: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white">
+                                        <option value="nuevo">Nuevo</option>
+                                        <option value="segunda_mano">Segunda mano</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">

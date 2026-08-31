@@ -8,6 +8,7 @@ import BackorderModal from '@/components/BackorderModal';
 import CartDrawer from '@/components/CartDrawer';
 import SocialProofToasts from '@/components/SocialProofToasts';
 import OrderTracker from '@/components/OrderTracker';
+import TradeInModal from '@/components/TradeInModal';
 import { useCart } from '@/context/CartContext';
 import { Banner } from '@/types/database';
 
@@ -61,6 +62,8 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState('');
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recientes');
+  const [conditionFilter, setConditionFilter] = useState<'all' | 'nuevo' | 'segunda_mano'>('all');
+  const [tradeInOpen, setTradeInOpen] = useState(false);
 
   const { addItem } = useCart();
 
@@ -157,8 +160,10 @@ export default function Home() {
       const matchesMin = min === null || item.price >= min;
       const matchesMax = max === null || item.price <= max;
       const matchesStock = !onlyInStock || item.stock > 0;
+      const itemCondition = item.condition === 'segunda_mano' ? 'segunda_mano' : 'nuevo';
+      const matchesCondition = conditionFilter === 'all' || itemCondition === conditionFilter;
 
-      return matchesSearch && matchesFilter && matchesMin && matchesMax && matchesStock;
+      return matchesSearch && matchesFilter && matchesMin && matchesMax && matchesStock && matchesCondition;
     });
 
     const sorted = [...result];
@@ -166,7 +171,7 @@ export default function Home() {
     else if (sortBy === 'precio-desc') sorted.sort((a, b) => b.price - a.price);
     // 'recientes' conserva el orden de llegada (ya viene por created_at desc)
     return sorted;
-  }, [products, searchTerm, selectedFilter, minPrice, maxPrice, onlyInStock, sortBy]);
+  }, [products, searchTerm, selectedFilter, minPrice, maxPrice, onlyInStock, sortBy, conditionFilter]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-8">
@@ -176,6 +181,12 @@ export default function Home() {
           <p className="text-slate-400 text-xs mt-1">Stock en vivo desde tienda física y web</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setTradeInOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 transition shadow-lg shadow-purple-900/30"
+          >
+            🔁 Trae tu usado
+          </button>
           <OrderTracker />
           <a
             href={FACEBOOK_URL}
@@ -283,6 +294,23 @@ export default function Home() {
           <span className="text-xs text-slate-500">{filteredProducts.length} productos encontrados</span>
         </div>
 
+        {/* Filtro rápido: Nuevo vs Segunda mano */}
+        <div className="flex flex-wrap gap-2">
+          {([
+            { key: 'all', label: 'Todo' },
+            { key: 'nuevo', label: '🟢 Nuevo' },
+            { key: 'segunda_mano', label: '🟣 Seminuevo' },
+          ] as const).map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setConditionFilter(opt.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${conditionFilter === opt.key ? 'bg-slate-100 text-slate-900 border-slate-100' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         {/* Filtros avanzados */}
         <div className="flex flex-wrap items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-3">
           <div className="flex items-center gap-2">
@@ -352,7 +380,10 @@ export default function Home() {
               <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/50 transition">
                 <div>
                   {/* Foto de Producto */}
-                  <div className="w-full h-44 mb-4 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800/80">
+                  <div className="relative w-full h-44 mb-4 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800/80">
+                    <span className={`absolute top-2 left-2 z-10 text-[10px] font-bold px-2 py-0.5 rounded-full ${item.condition === 'segunda_mano' ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-white'}`}>
+                      {item.condition === 'segunda_mano' ? '🟣 Seminuevo' : '🟢 Nuevo'}
+                    </span>
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition duration-300" />
                     ) : (
@@ -440,6 +471,8 @@ export default function Home() {
       {/* Carrito flotante y notificaciones de prueba social */}
       <CartDrawer />
       <SocialProofToasts />
+
+      {tradeInOpen && <TradeInModal onClose={() => setTradeInOpen(false)} />}
     </main>
   );
 }

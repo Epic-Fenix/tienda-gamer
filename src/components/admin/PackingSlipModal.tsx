@@ -42,7 +42,7 @@ export default function PackingSlipModal({ order, onClose }: Props) {
                             <p className="text-[9px] leading-tight mt-0.5">{STORE.address}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[9px] uppercase font-bold">Etiqueta de envío</p>
+                            <p className="text-[9px] uppercase font-bold">Despacho de Pedido</p>
                             <p className="text-[9px]">{date}</p>
                         </div>
                     </div>

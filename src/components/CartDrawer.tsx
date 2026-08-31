@@ -249,6 +249,26 @@ export default function CartDrawer() {
 
                                 {/* Totales + formulario */}
                                 <div className="border-t border-slate-800 p-5 space-y-3">
+                                    {/* Barra de progreso hacia envío gratis (umbral S/. 300) */}
+                                    {(() => {
+                                        const THRESHOLD = 300;
+                                        const remaining = Math.max(0, THRESHOLD - total);
+                                        const pct = Math.min(100, (total / THRESHOLD) * 100);
+                                        const unlocked = remaining <= 0;
+                                        return (
+                                            <div className={`rounded-lg border p-3 ${unlocked ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-950 border-slate-800'}`}>
+                                                <p className={`text-[11px] font-semibold ${unlocked ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                                    {unlocked
+                                                        ? '🎉 ¡Felicidades! Tienes Envío Gratis'
+                                                        : <>🚚 Agrega <span className="text-white font-bold">S/. {formatSoles(remaining)}</span> más para obtener ¡Envío Gratis!</>}
+                                                </p>
+                                                <div className="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                                    <div className={`h-full rounded-full transition-all duration-500 ${unlocked ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {/* Selector de modalidad de pago */}
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Modalidad de pago</p>

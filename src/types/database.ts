@@ -1,3 +1,5 @@
+export type Condition = 'nuevo' | 'segunda_mano';
+
 export interface Product {
     id: string;
     name: string;
@@ -7,6 +9,7 @@ export interface Product {
     platform?: string;
     condition: string;
     price: number;
+    cost_price?: number; // Costo de adquisición (S/.)
     stock: number;
     allow_reservation: boolean;
     min_reservation_pct: number;
@@ -73,6 +76,18 @@ export interface Coupon {
     is_active: boolean;
     max_uses?: number | null;   // null = usos ilimitados
     uses_count?: number;        // veces ya utilizado
+    created_at?: string;
+}
+
+export type TradeInStatus = 'pending' | 'contacted' | 'closed';
+
+export interface TradeIn {
+    id: string;
+    customer_name: string;
+    customer_phone: string;
+    offered_item: string;
+    wanted_item?: string | null;
+    status: TradeInStatus | string;
     created_at?: string;
 }
 
