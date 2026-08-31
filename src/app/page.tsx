@@ -172,7 +172,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-8">
       <header className="max-w-6xl mx-auto mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
         <div>
-          <h1 className="text-3xl font-black tracking-wider text-indigo-400">TIENDA GAMER</h1>
+          <h1 className="text-3xl font-black tracking-wider text-indigo-400">SCOTT GAMES</h1>
           <p className="text-slate-400 text-xs mt-1">Stock en vivo desde tienda física y web</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -426,8 +426,8 @@ export default function Home() {
           </a>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-slate-500">
-          <p className="font-black tracking-wider text-slate-400">TIENDA GAMER</p>
-          <p>© {new Date().getFullYear()} Tienda Gamer. Todos los derechos reservados.</p>
+          <p className="font-black tracking-wider text-slate-400">SCOTT GAMES</p>
+          <p>© {new Date().getFullYear()} SCOTT GAMES. Todos los derechos reservados.</p>
           <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#4a94f5] hover:text-white transition">
             Facebook Oficial
           </a>

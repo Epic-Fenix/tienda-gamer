@@ -24,7 +24,7 @@ export function buildComprobanteWhatsappLink(orderCode: string, amount: number, 
     const digits = PAYMENT_INFO.whatsapp.replace(/\D/g, '');
     const concepto = isFullPayment ? 'la Liquidación Total (100%)' : 'el Abono de Reserva';
     const message =
-        `¡Hola Tienda Gamer! 👋 Adjunto mi comprobante de ${concepto} de la orden ` +
+        `¡Hola SCOTT GAMES! 👋 Adjunto mi comprobante de ${concepto} de la orden ` +
         `${orderCode} por S/. ${formatSoles(amount)}. Quedo atento(a) a la confirmación. ¡Gracias!`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }

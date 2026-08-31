@@ -90,12 +90,18 @@ export default function CouponManager() {
                 <p className="text-xs text-slate-500">No hay cupones registrados.</p>
             ) : (
                 <div className="space-y-2">
-                    {coupons.map((c) => (
+                    {coupons.map((c) => {
+                        // Guarda contra NaN y trata cualquier tipo que no sea 'fixed' como porcentual.
+                        const val = Number(c.discount_value);
+                        const safeVal = Number.isFinite(val) ? val : 0;
+                        const isPercent = c.discount_type !== 'fixed';
+                        const discountText = isPercent
+                            ? `${safeVal}% de descuento`
+                            : `S/. ${safeVal.toFixed(2)} de descuento`;
+                        return (
                         <div key={c.id} className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3">
                             <span className="font-mono font-bold text-indigo-400 text-sm">{c.code}</span>
-                            <span className="text-xs text-slate-300">
-                                {c.discount_type === 'percent' ? `${c.discount_value}% de descuento` : `S/. ${Number(c.discount_value).toFixed(2)} de descuento`}
-                            </span>
+                            <span className="text-xs text-slate-300">{discountText}</span>
                             <span className="text-[11px] text-slate-500">
                                 Usos: {c.uses_count ?? 0}{c.max_uses != null ? ` / ${c.max_uses}` : ' (ilimitado)'}
                             </span>
@@ -104,7 +110,8 @@ export default function CouponManager() {
                             </button>
                             <button onClick={() => remove(c)} className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded text-xs font-bold transition">Eliminar</button>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </section>

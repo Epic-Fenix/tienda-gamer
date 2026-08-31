@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { formatSoles } from '@/lib/payment';
+import { orderUrl } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
@@ -200,7 +201,7 @@ export default function CartDrawer() {
                                     <p className="text-xl font-mono font-black text-indigo-400">{success.code}</p>
                                 </div>
                                 <div className="bg-white p-3 rounded-xl w-max mx-auto">
-                                    <QRCodeSVG value={`https://tu-dominio.vercel.app/admin/verify/${success.code}`} size={150} />
+                                    <QRCodeSVG value={orderUrl(success.code)} size={150} />
                                 </div>
                                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
                                     <div className="flex justify-between font-bold"><span className="text-emerald-400">{success.isFull ? 'Pago total:' : 'Abono a separar:'}</span><span>S/. {formatSoles(success.reservation)}</span></div>

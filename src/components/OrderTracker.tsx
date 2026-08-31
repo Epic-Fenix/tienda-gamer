@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Order } from '@/types/database';
 import { ORDER_STEPS, statusToStep } from '@/lib/orderStatus';
 import { formatSoles } from '@/lib/payment';
+import { orderUrl } from '@/lib/site';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function OrderTracker() {
@@ -13,14 +14,9 @@ export default function OrderTracker() {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
     const [results, setResults] = useState<Order[]>([]);
+    const [lastQuery, setLastQuery] = useState('');
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const q = term.trim();
-        if (q === '') return;
-        setLoading(true);
-        setSearched(true);
-
+    const runSearch = async (q: string) => {
         const digits = q.replace(/\D/g, '');
         const filters = [`order_code.ilike.%${q}%`];
         if (digits.length >= 6) filters.push(`customer_phone.ilike.%${digits}%`);
@@ -33,14 +29,37 @@ export default function OrderTracker() {
             .limit(10);
 
         setResults((data as Order[]) || []);
+    };
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const q = term.trim();
+        if (q === '') return;
+        setLoading(true);
+        setSearched(true);
+        setLastQuery(q);
+        await runSearch(q);
         setLoading(false);
     };
+
+    // Actualiza el resultado en vivo cuando cambia alguna orden (estado, etc.).
+    useEffect(() => {
+        if (!open || lastQuery === '') return;
+        const channel = supabase
+            .channel('order-tracker-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => runSearch(lastQuery))
+            .subscribe();
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [open, lastQuery]);
 
     const close = () => {
         setOpen(false);
         setTerm('');
         setResults([]);
         setSearched(false);
+        setLastQuery('');
     };
 
     return (
@@ -135,7 +154,7 @@ export default function OrderTracker() {
 
                                         <div className="flex items-center gap-3">
                                             <div className="bg-white p-1.5 rounded-lg shrink-0">
-                                                <QRCodeSVG value={`https://tu-dominio.vercel.app/admin/verify/${order.order_code}`} size={64} />
+                                                <QRCodeSVG value={orderUrl(order.order_code)} size={64} />
                                             </div>
                                             <a href={`/order/${order.order_code}`} className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
                                                 Ver boleta y datos de pago

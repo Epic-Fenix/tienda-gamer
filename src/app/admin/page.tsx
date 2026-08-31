@@ -6,6 +6,7 @@ import { Product, Order, Backorder, BackorderStatus } from '@/types/database';
 import Link from 'next/link';
 import BannerManager from '@/components/admin/BannerManager';
 import CouponManager from '@/components/admin/CouponManager';
+import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 
 // PIN de acceso al panel (configurable por variable de entorno).
 const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
@@ -120,6 +121,16 @@ export default function AdminDashboard() {
         await supabase.from('products').update({ stock: nextStock }).eq('id', id);
     };
 
+    // Cambia el estado de una orden (se refleja en vivo en el rastreador del cliente).
+    const handleUpdateOrderStatus = async (id: string, status: string) => {
+        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+        const { error } = await supabase.from('orders').update({ status }).eq('id', id);
+        if (error) {
+            alert('Error al actualizar el estado: ' + error.message);
+            fetchData();
+        }
+    };
+
     // Normaliza el teléfono a formato internacional peruano para wa.me (51 + 9 dígitos)
     const buildWhatsappLink = (bo: Backorder) => {
         const digits = (bo.customer_phone || '').replace(/\D/g, '');
@@ -127,7 +138,7 @@ export default function AdminDashboard() {
         const local = digits.startsWith('51') && digits.length > 9 ? digits.slice(2) : digits;
         const productName = bo.product?.name ?? 'tu producto encargado';
         const message =
-            `¡Hola ${bo.customer_name}! Te escribimos de Tienda Gamer. ` +
+            `¡Hola ${bo.customer_name}! Te escribimos de SCOTT GAMES. ` +
             `Te avisamos que ya ingresó stock de tu producto encargado: ${productName}. ` +
             `¿Deseas confirmar tu compra o reserva?`;
         return `https://wa.me/51${local}?text=${encodeURIComponent(message)}`;
@@ -471,9 +482,15 @@ export default function AdminDashboard() {
                                         <td className="py-3 text-slate-400">{ord.customer_phone}</td>
                                         <td className="py-3 text-amber-400 font-bold">S/. {ord.pending_amount}</td>
                                         <td className="py-3">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${ord.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                                                {ord.status === 'completed' ? 'Entregado' : 'Separado'}
-                                            </span>
+                                            <select
+                                                value={normalizeStatus(ord.status)}
+                                                onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
+                                                className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500"
+                                            >
+                                                {ORDER_STATUS_OPTIONS.map((o) => (
+                                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                                ))}
+                                            </select>
                                         </td>
                                         <td className="py-3 text-right">
                                             <Link href={`/admin/verify/${ord.order_code}`} className="text-xs text-indigo-400 hover:underline">Verificar →</Link>
