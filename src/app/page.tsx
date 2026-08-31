@@ -27,9 +27,9 @@ type Slide = {
 };
 
 const DEFAULT_SLIDES: Slide[] = [
-  { title: '¡Nuevos ingresos PS5!', subtitle: 'Los últimos lanzamientos ya disponibles en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]' },
-  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]' },
-  { title: 'Únete a la comunidad', subtitle: 'Sorteos y ofertas flash primero en nuestro Facebook.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', cta: 'Ir a Facebook', href: FACEBOOK_URL },
+  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg' },
+  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg' },
+  { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL },
 ];
 
 interface CategoryDef { key: string; label: string; icon: string; match: (p: Product) => boolean; }
@@ -179,8 +179,28 @@ export default function Home() {
       {/* Navbar */}
       <header className="sticky top-0 z-30 bg-[#13072b]/95 backdrop-blur border-b border-[#3e1b75]/60">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <a href="#" className="text-xl font-black tracking-wider text-white shrink-0">
-            SCOTT <span className="text-[#fcd34d]">GAMES</span>
+          <a href="#" className="flex items-center gap-2 shrink-0 group">
+            {/* Isotipo gamer: escudo con mando y resplandor neón */}
+            <span className="relative inline-flex" style={{ filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.7))' }}>
+              <svg viewBox="0 0 48 48" className="w-8 h-8" aria-hidden="true">
+                <defs>
+                  <linearGradient id="scottLogo" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#8b5cf6" />
+                    <stop offset="1" stopColor="#2dd4bf" />
+                  </linearGradient>
+                </defs>
+                {/* Escudo */}
+                <path d="M24 3l16 5v12c0 10-6.8 17.6-16 21-9.2-3.4-16-11-16-21V8l16-5z" fill="#1e0d3b" stroke="url(#scottLogo)" strokeWidth="2.5" strokeLinejoin="round" />
+                {/* Mando */}
+                <g fill="#fcd34d">
+                  <rect x="13" y="21" width="22" height="10" rx="5" />
+                  <circle cx="16.5" cy="26" r="1.6" fill="#1e0d3b" />
+                  <rect x="20.2" y="25.2" width="1.6" height="1.6" fill="#1e0d3b" />
+                  <circle cx="31.5" cy="26" r="1.4" fill="#1e0d3b" />
+                </g>
+              </svg>
+            </span>
+            <span className="text-xl font-black tracking-wider text-white">SCOTT <span className="text-[#fcd34d]">GAMES</span></span>
           </a>
           <div className="relative flex-1 max-w-xl mx-auto">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a72b8]">
@@ -211,8 +231,13 @@ export default function Home() {
           <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-[#3e1b75] min-h-[240px] flex">
             <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
               {slides.map((b, i) => (
-                <div key={i} className={`relative min-w-full p-6 md:p-8 flex flex-col justify-center ${b.image_url ? 'bg-[#2a1352]' : `bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}`} style={b.image_url ? { backgroundImage: `url(${b.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
-                  {b.image_url && <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/30" />}
+                <div key={i} className={`relative min-w-full p-6 md:p-8 flex flex-col justify-center bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}>
+                  {/* Imagen real de fondo (con degradé para alto contraste); cae al gradiente si falla */}
+                  {b.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.image_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  {b.image_url && <div className="absolute inset-0 bg-gradient-to-r from-[#13072b]/95 via-[#13072b]/80 to-transparent" />}
                   <div className="relative z-10 max-w-md">
                     <span className="inline-block text-[11px] font-black px-2 py-0.5 rounded bg-[#fcd34d] text-zinc-950 mb-3">🔥 OFERTA · termina en {pad(cH)}:{pad(cM)}:{pad(cS)}</span>
                     <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow">{b.title}</h2>
@@ -240,15 +265,25 @@ export default function Home() {
 
           {/* Mini banners */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-            <button onClick={() => setTradeInOpen(true)} className="text-left rounded-2xl border border-[#3e1b75] bg-gradient-to-br from-[#2a1352] to-[#3e1b75] p-4 hover:border-[#8b5cf6] transition">
-              <p className="text-[11px] font-black text-[#2dd4bf] uppercase tracking-wide">🔄 Plan Canje / Trueque</p>
-              <p className="text-sm font-bold text-white mt-1">Deja tu disco usado como parte de pago</p>
-              <p className="text-[11px] text-[#c4b5fd] mt-1">Trae tu juego o consola y paga solo la diferencia →</p>
+            <button onClick={() => setTradeInOpen(true)} className="group relative overflow-hidden text-left rounded-2xl border border-[#3e1b75] bg-gradient-to-br from-[#2a1352] to-[#3e1b75] p-4 hover:border-[#8b5cf6] transition">
+              {/* Watermark de mandos/consolas + overlay violeta oscuro */}
+              <span className="pointer-events-none absolute -right-3 -bottom-4 text-[80px] leading-none opacity-15 group-hover:opacity-25 group-hover:scale-110 transition duration-500">🎮</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#1e0d3b]/90 via-[#2a1352]/70 to-transparent" />
+              <div className="relative z-10">
+                <p className="text-[11px] font-black text-[#2dd4bf] uppercase tracking-wide">🔄 Plan Canje / Trueque</p>
+                <p className="text-sm font-bold text-white mt-1">Deja tu disco usado como parte de pago</p>
+                <p className="text-[11px] text-[#c4b5fd] mt-1">Trae tu juego o consola y paga solo la diferencia →</p>
+              </div>
             </button>
-            <a href="#catalogo" className="block rounded-2xl border border-[#3e1b75] bg-gradient-to-br from-[#0e7490]/40 to-[#2a1352] p-4 hover:border-[#2dd4bf] transition">
-              <p className="text-[11px] font-black text-[#fcd34d] uppercase tracking-wide">📦 Envío Gratis a todo el Perú</p>
-              <p className="text-sm font-bold text-white mt-1">Por compras desde S/. 300</p>
-              <p className="text-[11px] text-[#c4b5fd] mt-1">Agrega productos y llega gratis a tu puerta →</p>
+            <a href="#catalogo" className="group relative overflow-hidden block rounded-2xl border border-[#3e1b75] bg-gradient-to-br from-[#0e7490]/50 to-[#2a1352] p-4 hover:border-[#2dd4bf] transition">
+              {/* Watermark de entrega rápida + overlay */}
+              <span className="pointer-events-none absolute -right-3 -bottom-4 text-[80px] leading-none opacity-15 group-hover:opacity-25 group-hover:scale-110 transition duration-500">🚚</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0d0520]/90 via-[#0e7490]/20 to-transparent" />
+              <div className="relative z-10">
+                <p className="text-[11px] font-black text-[#fcd34d] uppercase tracking-wide">📦 Envío Gratis a todo el Perú</p>
+                <p className="text-sm font-bold text-white mt-1">Por compras desde S/. 300</p>
+                <p className="text-[11px] text-[#c4b5fd] mt-1">Agrega productos y llega gratis a tu puerta →</p>
+              </div>
             </a>
           </div>
         </section>
