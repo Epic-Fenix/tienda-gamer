@@ -10,6 +10,7 @@ export interface Product {
     condition: string;
     price: number;
     cost_price?: number; // Costo de adquisición (S/.)
+    old_price?: number | null; // Precio anterior para mostrar descuento (opcional)
     stock: number;
     allow_reservation: boolean;
     min_reservation_pct: number;

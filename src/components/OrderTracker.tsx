@@ -66,12 +66,9 @@ export default function OrderTracker() {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c4b5fd] hover:text-white transition"
             >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-                </svg>
-                Consultar Pedido
+                📦 Rastrear Pedido
             </button>
 
             {open && (
