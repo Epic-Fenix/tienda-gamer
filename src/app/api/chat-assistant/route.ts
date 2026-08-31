@@ -85,40 +85,47 @@ function buildSystemPrompt(products: Product[]): string {
     );
 }
 
+// Modelos candidatos en orden de prioridad. Si uno da 404 (no disponible en la versión de la API),
+// se intenta con el siguiente antes de caer al fallback determinístico.
+const CANDIDATE_MODELS = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-pro'];
+
 // Genera respuesta con Gemini usando el SDK oficial @google/generative-ai.
 async function geminiReply(messages: ChatMessage[], products: Product[]): Promise<string | null> {
     const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
-    try {
-        const genAI = new GoogleGenerativeAI(key);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
-            systemInstruction: buildSystemPrompt(products),
-        });
 
-        // Historial en formato del SDK. Gemini exige que el primer turno sea de rol 'user'.
-        const contents = messages.map((m) => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-        }));
-        while (contents.length > 0 && contents[0].role === 'model') contents.shift();
-        if (contents.length === 0) return null;
+    const genAI = new GoogleGenerativeAI(key);
+    const systemInstruction = buildSystemPrompt(products);
 
-        const result = await model.generateContent({
-            contents,
-            generationConfig: { temperature: 0.6, maxOutputTokens: 300 },
-        });
+    // Historial en formato del SDK. Gemini exige que el primer turno sea de rol 'user'.
+    const contents = messages.map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+    }));
+    while (contents.length > 0 && contents[0].role === 'model') contents.shift();
+    if (contents.length === 0) return null;
 
-        const text = result.response.text();
-        if (!text || text.trim() === '') {
-            console.error('[chat-assistant] Gemini devolvió una respuesta vacía.');
-            return null;
+    for (const modelName of CANDIDATE_MODELS) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
+            const result = await model.generateContent({
+                contents,
+                generationConfig: { temperature: 0.6, maxOutputTokens: 300 },
+            });
+            const text = result.response.text();
+            if (text && text.trim() !== '') return text.trim();
+            console.error(`[chat-assistant] "${modelName}" devolvió respuesta vacía; probando siguiente modelo.`);
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            const notFound = /404|not found|is not found/i.test(msg);
+            console.error(`[chat-assistant] "${modelName}" falló${notFound ? ' (404, no disponible)' : ''}: ${msg}`);
+            // Ante 404 probamos el siguiente; ante otros errores también seguimos por robustez.
+            continue;
         }
-        return text.trim();
-    } catch (err) {
-        console.error('[chat-assistant] Error llamando a Gemini (SDK):', err);
-        return null;
     }
+
+    console.error('[chat-assistant] Ningún modelo Gemini respondió; usando fallback determinístico.');
+    return null;
 }
 
 // Genera respuesta con OpenAI si hay OPENAI_API_KEY.
