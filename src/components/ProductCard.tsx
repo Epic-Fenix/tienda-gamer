@@ -109,11 +109,15 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
             </div>
 
             {/* Precio */}
-            <div className="mt-auto flex items-end gap-2 flex-wrap">
-                {hasDiscount && <span className="text-[11px] text-[#8a72b8] line-through">S/. {formatSoles(old)}</span>}
-                {hasDiscount && <span className="text-[11px] font-black text-[#fcd34d]">-{discountPct}%</span>}
-            </div>
-            <span className="text-xl font-black text-white leading-tight">S/. {formatSoles(product.price)}</span>
+            {hasDiscount && (
+                <div className="mt-auto flex items-center gap-2 flex-wrap">
+                    <span className="line-through text-zinc-400 text-xs">S/. {formatSoles(old)}</span>
+                    <span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-[#fcd34d] text-zinc-950">
+                        -{Math.round((1 - product.price / old) * 100)}%
+                    </span>
+                </div>
+            )}
+            <span className={`text-xl font-black text-white leading-tight ${hasDiscount ? '' : 'mt-auto'}`}>S/. {formatSoles(product.price)}</span>
 
             {/* Acciones */}
             <div className="mt-2.5 flex flex-col gap-1.5">

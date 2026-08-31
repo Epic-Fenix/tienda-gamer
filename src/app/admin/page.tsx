@@ -38,6 +38,7 @@ export default function AdminDashboard() {
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [costPrice, setCostPrice] = useState('');
+    const [oldPrice, setOldPrice] = useState('');
     const [stock, setStock] = useState('');
     const [category, setCategory] = useState('Videojuegos');
     const [platform, setPlatform] = useState('PS5');
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', stock: '', description: '', image_url: '', condition: 'nuevo' });
+    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo' });
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
     // Etiqueta de envío
@@ -221,6 +222,7 @@ export default function AdminDashboard() {
             platform,
             price: Number(price),
             cost_price: Number(costPrice) || 0,
+            old_price: oldPrice.trim() !== '' ? Number(oldPrice) : null,
             stock: Number(stock),
             min_reservation_pct: Number(minPct),
             image_url: imageUrl.trim() !== '' ? imageUrl.trim() : null,
@@ -236,6 +238,7 @@ export default function AdminDashboard() {
             setName('');
             setPrice('');
             setCostPrice('');
+            setOldPrice('');
             setStock('');
             setImageUrl('');
             setCondition('nuevo');
@@ -249,6 +252,7 @@ export default function AdminDashboard() {
             name: p.name,
             price: String(p.price),
             cost_price: p.cost_price != null ? String(p.cost_price) : '',
+            old_price: p.old_price != null ? String(p.old_price) : '',
             stock: String(p.stock),
             description: p.description ?? '',
             image_url: p.image_url ?? '',
@@ -265,6 +269,7 @@ export default function AdminDashboard() {
             name: editForm.name,
             price: Number(editForm.price),
             cost_price: Number(editForm.cost_price) || 0,
+            old_price: editForm.old_price.trim() !== '' ? Number(editForm.old_price) : null,
             stock: Number(editForm.stock),
             description: editForm.description.trim() !== '' ? editForm.description.trim() : null,
             image_url: editForm.image_url.trim() !== '' ? editForm.image_url.trim() : null,
@@ -275,7 +280,7 @@ export default function AdminDashboard() {
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === editProduct.id
-                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition }
+                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition }
                     : p
             )
         );
@@ -755,10 +760,14 @@ export default function AdminDashboard() {
                                     <input required type="text" value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className="text-slate-400 block mb-1">Costo Adquisición (S/.)</label>
+                                    <label className="text-slate-400 block mb-1">Costo Adquisición</label>
                                     <input type="number" step="0.01" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Precio anterior / Tachado</label>
+                                    <input type="number" step="0.01" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="Opcional" />
                                 </div>
                                 <div>
                                     <label className="text-slate-400 block mb-1">Condición</label>
@@ -822,10 +831,14 @@ export default function AdminDashboard() {
                                 </div>
                                 <CoverSearch query={editForm.name} onSelect={(url) => setEditForm((prev) => ({ ...prev, image_url: url }))} />
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className="text-slate-400 block mb-1">Costo Adquisición (S/.)</label>
+                                    <label className="text-slate-400 block mb-1">Costo Adquisición</label>
                                     <input type="number" step="0.01" value={editForm.cost_price} onChange={(e) => setEditForm({ ...editForm, cost_price: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Precio anterior / Tachado</label>
+                                    <input type="number" step="0.01" value={editForm.old_price} onChange={(e) => setEditForm({ ...editForm, old_price: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="Opcional" />
                                 </div>
                                 <div>
                                     <label className="text-slate-400 block mb-1">Condición</label>

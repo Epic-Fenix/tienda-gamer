@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import { formatSoles } from '@/lib/payment';
+import { formatSoles, PAYMENT_INFO } from '@/lib/payment';
 import { orderUrl } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
@@ -23,6 +23,7 @@ export default function CartDrawer() {
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [fullPayment, setFullPayment] = useState(false);
+    const [deliveryType, setDeliveryType] = useState<'pickup' | 'shipping'>('pickup');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
 
@@ -45,6 +46,22 @@ export default function CartDrawer() {
     // Montos a mostrar según la modalidad elegida (sobre el total con descuento).
     const payNow = fullPayment ? netTotal : Math.min(reservationTotal, netTotal);
     const payLater = round2(netTotal - payNow);
+
+    // Enlace de checkout por WhatsApp con el resumen del pedido.
+    const whatsappCheckoutLink = () => {
+        const digits = PAYMENT_INFO.whatsapp.replace(/\D/g, '');
+        const lista = items.map((i) => `• ${i.quantity}x ${i.name} — S/. ${formatSoles(i.price * i.quantity)}`).join('\n');
+        const entrega = deliveryType === 'pickup' ? 'Recojo en tienda' : 'Envío a domicilio';
+        const msg =
+            `🎮 *NUEVO PEDIDO - SCOTT GAMES LIMA*\n` +
+            `----------------------------------\n` +
+            `Productos:\n${lista}\n` +
+            `Total: S/. ${formatSoles(netTotal)}\n` +
+            `Tipo de entrega: ${entrega}\n` +
+            `----------------------------------\n` +
+            `¡Hola! Quiero confirmar mi compra.`;
+        return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+    };
 
     const applyCoupon = async () => {
         const codeInput = couponCode.trim().toUpperCase();
@@ -112,7 +129,7 @@ export default function CartDrawer() {
             customer_name: name,
             customer_phone: phone,
             customer_email: email.trim() !== '' ? email.trim() : null,
-            delivery_type: 'pickup',
+            delivery_type: deliveryType,
             total_amount: totalAmount,
             paid_amount: reservation,
             pending_amount: pending,
@@ -156,6 +173,7 @@ export default function CartDrawer() {
         setPhone('');
         setEmail('');
         setFullPayment(false);
+        setDeliveryType('pickup');
         removeCoupon();
         closeCart();
     };
@@ -316,6 +334,19 @@ export default function CartDrawer() {
                                         )}
                                     </div>
 
+                                    {/* Tipo de entrega */}
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Tipo de entrega</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button type="button" onClick={() => setDeliveryType('pickup')} className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${deliveryType === 'pickup' ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}>
+                                                🏬 Recojo en tienda
+                                            </button>
+                                            <button type="button" onClick={() => setDeliveryType('shipping')} className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${deliveryType === 'shipping' ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}>
+                                                🚚 Envío a domicilio
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="text-xs space-y-1">
                                         <div className="flex justify-between text-slate-400"><span>Subtotal ({count} art.):</span><span className="font-bold text-white">S/. {formatSoles(total)}</span></div>
                                         {discount > 0 && (
@@ -327,6 +358,19 @@ export default function CartDrawer() {
                                         <div className="flex justify-between text-indigo-400"><span>{fullPayment ? 'A pagar ahora (100%):' : 'Abono a separar:'}</span><span className="font-bold">S/. {formatSoles(payNow)}</span></div>
                                         <div className="flex justify-between text-slate-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(payLater)}</span></div>
                                     </div>
+
+                                    {/* Checkout directo por WhatsApp */}
+                                    <a
+                                        href={whatsappCheckoutLink()}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-black transition"
+                                    >
+                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.599 5.35l-.999 3.648 3.9-.297zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
+                                        Finalizar Pedido por WhatsApp
+                                    </a>
+                                    <p className="text-center text-[10px] text-slate-500">o genera tu reserva con QR y datos de pago ↓</p>
+
                                     <form onSubmit={handleConfirm} className="space-y-2">
                                         <input required type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre completo *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
                                         <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="WhatsApp / Celular *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
