@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/database';
 import { STORE } from '@/lib/site';
@@ -84,45 +85,38 @@ function buildSystemPrompt(products: Product[]): string {
     );
 }
 
-// Genera respuesta con Gemini si hay GEMINI_API_KEY.
+// Genera respuesta con Gemini usando el SDK oficial @google/generative-ai.
 async function geminiReply(messages: ChatMessage[], products: Product[]): Promise<string | null> {
     const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
     try {
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            systemInstruction: buildSystemPrompt(products),
+        });
+
+        // Historial en formato del SDK. Gemini exige que el primer turno sea de rol 'user'.
         const contents = messages.map((m) => ({
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: m.content }],
         }));
+        while (contents.length > 0 && contents[0].role === 'model') contents.shift();
+        if (contents.length === 0) return null;
 
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: buildSystemPrompt(products) }] },
-                    contents,
-                    generationConfig: { temperature: 0.6, maxOutputTokens: 300 },
-                }),
-            }
-        );
+        const result = await model.generateContent({
+            contents,
+            generationConfig: { temperature: 0.6, maxOutputTokens: 300 },
+        });
 
-        if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            console.error(`[chat-assistant] Gemini respondió ${res.status} ${res.statusText}: ${detail}`);
-            return null;
-        }
-
-        const data = await res.json();
-        // Si Gemini bloquea o no devuelve texto, lo registramos para depurar.
-        const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) {
-            console.error('[chat-assistant] Gemini sin texto en la respuesta:', JSON.stringify(data).slice(0, 500));
+        const text = result.response.text();
+        if (!text || text.trim() === '') {
+            console.error('[chat-assistant] Gemini devolvió una respuesta vacía.');
             return null;
         }
         return text.trim();
     } catch (err) {
-        console.error('[chat-assistant] Error llamando a Gemini:', err);
+        console.error('[chat-assistant] Error llamando a Gemini (SDK):', err);
         return null;
     }
 }
