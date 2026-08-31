@@ -21,9 +21,28 @@ export function platformStyle(platform?: string): string {
     return 'bg-violet-600 text-white';
 }
 
+// Tipo de producto dinámico (badge): disco físico, hardware o coleccionable.
+export function productKind(product: Product): { icon: string; label: string } {
+    const cat = (product.category || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    const plat = (product.platform || '').toLowerCase();
+    if (/consola|accesori|mando|control|hardware|audíf|auricular|headset/.test(cat) || /consola|mando|control|dualsense/.test(name)) {
+        return { icon: '🕹️', label: 'HARDWARE ORIGINAL' };
+    }
+    if (/figura|anime|colec|funko|peluche/.test(cat) || /funko|figura|amiibo/.test(name)) {
+        return { icon: '🧸', label: 'COLECCIONABLE' };
+    }
+    if (cat.includes('juego') || /ps5|ps4|switch|xbox|nintendo|playstation/.test(plat)) {
+        return { icon: '💿', label: 'DISCO FÍSICO' };
+    }
+    return { icon: '💿', label: 'DISCO FÍSICO' };
+}
+
 export default function ProductCard({ product, onReserve, onBackorder, onQuickView }: Props) {
     const { addItem } = useCart();
     const [added, setAdded] = useState(false);
+    const [imgError, setImgError] = useState(false);
+    const kind = productKind(product);
 
     const isSecond = product.condition === 'segunda_mano';
     const old = Number(product.old_price) || 0;
@@ -59,9 +78,9 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                         -{discountPct}%
                     </span>
                 )}
-                {product.image_url ? (
+                {product.image_url && !imgError ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out" />
+                    <img src={product.image_url} alt={product.name} onError={() => setImgError(true)} className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out" />
                 ) : (
                     <span className="text-xs text-[#6d4aa8]">Sin imagen</span>
                 )}
@@ -70,9 +89,9 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 </span>
             </button>
 
-            {/* Tag disco físico */}
+            {/* Tag de tipo de producto (dinámico) */}
             <span className="self-start text-[9px] font-bold uppercase tracking-wide text-[#2dd4bf] bg-[#2dd4bf]/10 px-1.5 py-0.5 rounded mb-1">
-                💿 Disco físico
+                {kind.icon} {kind.label}
             </span>
 
             {/* Nombre */}

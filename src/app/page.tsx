@@ -167,7 +167,7 @@ export default function Home() {
       <div className="bg-[#0d0520] border-b border-[#3e1b75]/60 text-[11px]">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 text-[#2dd4bf] font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" /> Tienda física Chiclayo: Stock en Vivo
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" /> Tienda física Lima: Stock en Vivo
           </span>
           <div className="flex items-center gap-4">
             <OrderTracker />
@@ -341,7 +341,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
             <p className="font-black tracking-wider text-[#c4b5fd]">SCOTT GAMES</p>
-            <p>© {new Date().getFullYear()} SCOTT GAMES · Chiclayo, Perú. Todos los derechos reservados.</p>
+            <p>© {new Date().getFullYear()} SCOTT GAMES · Lima, Perú. Todos los derechos reservados.</p>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#2dd4bf] hover:text-white transition">Facebook Oficial</a>
           </div>
         </footer>
