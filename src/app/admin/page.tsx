@@ -426,7 +426,7 @@ export default function AdminDashboard() {
                     <div className="text-center mb-6">
                         {/* Logo oficial SCOTT GAMES */}
                         <span className="inline-flex mb-3" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.8))' }}>
-                            <LogoScott className="justify-center" />
+                            <LogoScott className="mx-auto" />
                         </span>
                         <h1 className="text-lg font-black text-white tracking-wide">SCOTT <span className="text-[#fcd34d]">GAMES</span> · Admin</h1>
                         <p className="text-xs text-[#c4b5fd] mt-1">
