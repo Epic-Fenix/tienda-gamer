@@ -2,10 +2,10 @@
 // Los marcados como REEMPLAZAR son placeholders y deben actualizarse antes de publicar.
 export const PAYMENT_INFO = {
     accountHolder: 'SCOTT GAMES',
-    yapePlinNumber: '939719872',
+    yapePlinNumber: '937048605',
     // Número de WhatsApp al que el cliente envía su comprobante (ventas/checkout).
-    whatsapp: '+51 939 719 872',
-    whatsappDigits: '51939719872',
+    whatsapp: '+51 937 048 605',
+    whatsappDigits: '51937048605',
     // Enlace directo de WhatsApp Business (sin texto prellenado).
     whatsappLink: 'https://wa.me/message/TEBDYEKCXWVZF1',
     bcp: '191-00000000-0-00', // REEMPLAZAR con tu número de cuenta BCP real

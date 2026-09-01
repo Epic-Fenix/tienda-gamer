@@ -10,6 +10,8 @@ import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
 
+const DELIVERY_EMOJI: Record<string, string> = { feria_grau: '🏬', domicilio: '🚚', provincia: '📦' };
+
 interface SuccessOrder {
     code: string;
     reservation: number;
@@ -245,7 +247,7 @@ export default function CartDrawer() {
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={success ? undefined : closeCart} />
-                    <aside className="relative w-full max-w-md h-full max-h-screen bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+                    <aside className="relative w-full max-w-md h-[100dvh] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col justify-between">
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 border-b border-slate-800 flex-shrink-0">
                             <h2 className="text-lg font-black text-white">
@@ -298,7 +300,7 @@ export default function CartDrawer() {
                             </div>
                         ) : (
                             <>
-                                <div className="flex-1 overflow-y-auto pr-2 p-5 space-y-3">
+                                <div className="max-h-[35vh] overflow-y-auto pr-2 p-5 space-y-3">
                                     {items.map((it) => (
                                         <div key={it.product_id} className="flex gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3">
                                             <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center shrink-0 border border-slate-800">
@@ -398,16 +400,29 @@ export default function CartDrawer() {
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Tipo de entrega</p>
                                         <div className="grid grid-cols-1 gap-2">
-                                            {DELIVERY_OPTIONS.map((opt) => (
-                                                <button
-                                                    key={opt.value}
-                                                    type="button"
-                                                    onClick={() => setDeliveryType(opt.value)}
-                                                    className={`px-3 py-2 rounded-lg text-xs font-bold border text-left transition ${deliveryType === opt.value ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}
-                                                >
-                                                    {deliveryType === opt.value ? '🔵 ' : '⚪ '}{opt.label}
-                                                </button>
-                                            ))}
+                                            {DELIVERY_OPTIONS.map((opt) => {
+                                                const freeByThreshold = opt.fee > 0 && total >= 300;
+                                                return (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => setDeliveryType(opt.value)}
+                                                        className={`px-3 py-2 rounded-lg text-xs font-bold border transition flex items-center justify-between gap-2 ${deliveryType === opt.value ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}`}
+                                                    >
+                                                        <span className="flex items-center gap-1.5">{deliveryType === opt.value ? '🔵' : '⚪'} {DELIVERY_EMOJI[opt.value]} {opt.short}</span>
+                                                        {opt.fee === 0 ? (
+                                                            <span className="text-emerald-400 font-black">Gratis</span>
+                                                        ) : freeByThreshold ? (
+                                                            <span className="flex items-center gap-1.5">
+                                                                <span className="line-through text-slate-500">S/. {formatSoles(opt.fee)}</span>
+                                                                <span className="text-emerald-400 font-black" style={{ textShadow: '0 0 8px rgba(52,211,153,0.9)' }}>¡GRATIS!</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-white font-bold">+ S/. {formatSoles(opt.fee)}</span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 

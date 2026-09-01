@@ -58,6 +58,12 @@ export function productKind(product: Product): { icon: string; label: string } {
     return { icon: '💿', label: 'DISCO FÍSICO' };
 }
 
+// ¿Es una "Joya Épica"? (juego raro, coleccionable o de alta demanda).
+export function isEpic(product: Product): boolean {
+    const t = `${product.category ?? ''} ${product.name ?? ''}`.toLowerCase();
+    return /joya|épic|epic|oculta/.test(t);
+}
+
 export default function ProductCard({ product, onReserve, onBackorder, onQuickView }: Props) {
     const { addItem } = useCart();
     const [added, setAdded] = useState(false);
@@ -92,6 +98,12 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 <span className={`absolute top-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded shadow ${isSecond ? 'bg-[#8b5cf6] text-white' : 'bg-[#2dd4bf] text-zinc-950'}`}>
                     {conditionText(product)}
                 </span>
+                {/* Joya Épica */}
+                {isEpic(product) && (
+                    <span className="absolute bottom-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-[#8b5cf6] to-[#2dd4bf] text-white shadow" style={{ textShadow: '0 0 6px rgba(139,92,246,0.9)' }}>
+                        💎 ÉPICO
+                    </span>
+                )}
                 {/* Descuento */}
                 {hasDiscount && (
                     <span className="absolute bottom-1.5 left-1.5 z-10 text-[10px] font-black px-1.5 py-0.5 rounded bg-[#fcd34d] text-zinc-950 shadow">

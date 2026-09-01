@@ -10,7 +10,8 @@ import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
-import { SITE_URL } from '@/lib/site';
+import { SITE_URL, deliveryLabel } from '@/lib/site';
+import LogoScott from '@/components/LogoScott';
 
 type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders';
 
@@ -63,6 +64,7 @@ export default function AdminDashboard() {
 
     // Etiqueta de envío
     const [packingOrder, setPackingOrder] = useState<Order | null>(null);
+    const [verifyOrder, setVerifyOrder] = useState<Order | null>(null);
 
     // Pestaña activa del panel.
     const [tabActive, setTabActive] = useState<AdminTab>('inventario');
@@ -421,23 +423,9 @@ export default function AdminDashboard() {
 
                 <div className="relative w-full max-w-sm bg-[#1e0d3b]/85 border border-[#3e1b75] rounded-2xl p-8 shadow-2xl shadow-[#8b5cf6]/40 ring-1 ring-[#8b5cf6]/25">
                     <div className="text-center mb-6">
-                        {/* Isotipo SCOTT GAMES */}
-                        <span className="relative inline-flex mb-3" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.8))' }}>
-                            <svg viewBox="0 0 48 48" className="w-14 h-14" aria-hidden="true">
-                                <defs>
-                                    <linearGradient id="adminLogo" x1="0" y1="0" x2="1" y2="1">
-                                        <stop offset="0" stopColor="#8b5cf6" />
-                                        <stop offset="1" stopColor="#2dd4bf" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M24 3l16 5v12c0 10-6.8 17.6-16 21-9.2-3.4-16-11-16-21V8l16-5z" fill="#1e0d3b" stroke="url(#adminLogo)" strokeWidth="2.5" strokeLinejoin="round" />
-                                <g fill="#fcd34d">
-                                    <rect x="13" y="21" width="22" height="10" rx="5" />
-                                    <circle cx="16.5" cy="26" r="1.6" fill="#1e0d3b" />
-                                    <rect x="20.2" y="25.2" width="1.6" height="1.6" fill="#1e0d3b" />
-                                    <circle cx="31.5" cy="26" r="1.4" fill="#1e0d3b" />
-                                </g>
-                            </svg>
+                        {/* Logo oficial SCOTT GAMES */}
+                        <span className="inline-flex mb-3" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.8))' }}>
+                            <LogoScott className="h-14 w-auto mx-auto" />
                         </span>
                         <h1 className="text-lg font-black text-white tracking-wide">SCOTT <span className="text-[#fcd34d]">GAMES</span> · Admin</h1>
                         <p className="text-xs text-[#c4b5fd] mt-1">
@@ -710,7 +698,7 @@ export default function AdminDashboard() {
                                         <td className="py-3 text-right whitespace-nowrap space-x-2">
                                             <button onClick={() => setPackingOrder(ord)} className="text-xs text-slate-300 hover:text-white" title="Etiqueta de despacho">📦 Etiqueta</button>
                                             <a href={`/order/${ord.order_code}`} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline" title="Abrir boleta en nueva pestaña">🧾 Boleta ↗</a>
-                                            <Link href={`/admin/verify/${ord.order_code}`} className="text-xs text-indigo-400 hover:underline">Verificar →</Link>
+                                            <button onClick={() => setVerifyOrder(ord)} className="text-xs text-indigo-400 hover:underline">Verificar →</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -951,6 +939,7 @@ export default function AdminDashboard() {
                                         <option value="Consolas">Consolas</option>
                                         <option value="Mandos">Mandos</option>
                                         <option value="Figuras">Figuras</option>
+                                        <option value="Joyas Épicas">💎 Joyas Épicas</option>
                                     </select>
                                 </div>
                             </div>
@@ -994,6 +983,33 @@ export default function AdminDashboard() {
 
 
             {/* Etiqueta de envío / packing slip */}
+            {/* Modal Verificar Reserva */}
+            {verifyOrder && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                        <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-lg font-bold text-white">Verificar reserva</h3>
+                            <button onClick={() => setVerifyOrder(null)} className="text-slate-400 hover:text-white text-2xl leading-none" aria-label="Cerrar">×</button>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-3">Código <span className="font-mono text-indigo-400">#{verifyOrder.order_code}</span></p>
+                        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs space-y-1.5">
+                            <div className="flex justify-between gap-2"><span className="text-slate-500">Cliente</span><span className="text-white font-semibold text-right">{verifyOrder.customer_name}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-slate-500">WhatsApp</span><span className="text-white">{verifyOrder.customer_phone}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-slate-500">Entrega</span><span className="text-white text-right">{deliveryLabel(verifyOrder.delivery_type)}</span></div>
+                            <div className="flex justify-between gap-2"><span className="text-slate-500">Estado</span><span className="text-white uppercase font-semibold">{verifyOrder.status}</span></div>
+                            <div className="border-t border-slate-800 my-1.5" />
+                            <div className="flex justify-between gap-2"><span className="text-slate-500">Total</span><span className="text-white font-bold">S/. {money(Number(verifyOrder.total_amount) || 0)}</span></div>
+                            <div className="flex justify-between gap-2 text-emerald-400"><span>{verifyOrder.is_full_payment ? 'Pagado (100%)' : 'Abonado'}</span><span className="font-bold">S/. {money(Number(verifyOrder.paid_amount) || 0)}</span></div>
+                            <div className="flex justify-between gap-2 text-amber-400"><span>Saldo pendiente</span><span className="font-bold">S/. {money(Number(verifyOrder.pending_amount) || 0)}</span></div>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                            <a href={`/order/${verifyOrder.order_code}`} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">🧾 Ver comprobante</a>
+                            <button onClick={() => setVerifyOrder(null)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {packingOrder && <PackingSlipModal order={packingOrder} onClose={() => setPackingOrder(null)} />}
         </main>
     );

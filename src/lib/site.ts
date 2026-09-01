@@ -17,8 +17,8 @@ export const STORE = {
 export const CONTACT = {
     email: 'scottgamestore@gmail.com',
     // WhatsApp principal (ventas y checkout).
-    whatsappSales: '+51 939 719 872',
-    whatsappSalesDigits: '51939719872',
+    whatsappSales: '+51 937 048 605',
+    whatsappSalesDigits: '51937048605',
     whatsappSalesLink: 'https://wa.me/message/TEBDYEKCXWVZF1',
     // WhatsApp secundario (soporte).
     whatsappSupport: '+51 937 048 605',

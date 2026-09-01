@@ -13,6 +13,7 @@ import OrderTracker from '@/components/OrderTracker';
 import TradeInModal from '@/components/TradeInModal';
 import ProductCard from '@/components/ProductCard';
 import ProductQuickView from '@/components/ProductQuickView';
+import LogoScott from '@/components/LogoScott';
 
 type SortOption = 'recientes' | 'precio-asc' | 'precio-desc';
 
@@ -25,11 +26,12 @@ type Slide = {
   image_url?: string | null;
   cta?: string;
   href?: string;
+  targetSlug?: string | null;
 };
 
 const DEFAULT_SLIDES: Slide[] = [
-  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg' },
-  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg' },
+  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5' },
+  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5' },
   { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL },
 ];
 
@@ -42,6 +44,7 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'coleccionables', label: 'Coleccionables', icon: '🧸', match: (p) => /anime|colec|figura|funko|peluche/.test(`${p.category} ${p.name}`.toLowerCase()) },
+  { key: 'joyas', label: 'Joyas Épicas', icon: '💎', match: (p) => /joya|épic|epic|oculta/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
 ];
 
@@ -96,12 +99,21 @@ export default function Home() {
   const nextSlide = () => setSlide((s) => (s + 1) % slides.length);
   const prevSlide = () => setSlide((s) => (s - 1 + slides.length) % slides.length);
 
+  // CTA del hero: scroll suave al catálogo y abre el QuickView del producto ligado.
+  const handleHeroCta = (targetSlug?: string | null) => {
+    document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
+    if (targetSlug) {
+      const prod = products.find((p) => p.slug === targetSlug);
+      if (prod) setTimeout(() => setQuickViewProduct(prod), 500);
+    }
+  };
+
   // Banners activos desde Supabase (realtime), con respaldo local.
   useEffect(() => {
     const loadBanners = async () => {
       const { data } = await supabase.from('banners').select('*').eq('is_active', true).order('order_index', { ascending: true });
       if (data && data.length > 0) {
-        setSlides((data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, cta: b.button_text ?? undefined, href: b.link_url ?? undefined })));
+        setSlides((data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, cta: b.button_text ?? undefined, href: b.link_url ?? undefined, targetSlug: b.target_product_slug ?? undefined })));
       } else {
         setSlides(DEFAULT_SLIDES);
       }
@@ -181,27 +193,8 @@ export default function Home() {
       <header className="sticky top-0 z-30 bg-[#13072b]/95 backdrop-blur border-b border-[#3e1b75]/60">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <a href="#" className="flex items-center gap-2 shrink-0 group">
-            {/* Isotipo gamer: escudo con mando y resplandor neón */}
-            <span className="relative inline-flex" style={{ filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.7))' }}>
-              <svg viewBox="0 0 48 48" className="w-8 h-8" aria-hidden="true">
-                <defs>
-                  <linearGradient id="scottLogo" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#8b5cf6" />
-                    <stop offset="1" stopColor="#2dd4bf" />
-                  </linearGradient>
-                </defs>
-                {/* Escudo */}
-                <path d="M24 3l16 5v12c0 10-6.8 17.6-16 21-9.2-3.4-16-11-16-21V8l16-5z" fill="#1e0d3b" stroke="url(#scottLogo)" strokeWidth="2.5" strokeLinejoin="round" />
-                {/* Mando */}
-                <g fill="#fcd34d">
-                  <rect x="13" y="21" width="22" height="10" rx="5" />
-                  <circle cx="16.5" cy="26" r="1.6" fill="#1e0d3b" />
-                  <rect x="20.2" y="25.2" width="1.6" height="1.6" fill="#1e0d3b" />
-                  <circle cx="31.5" cy="26" r="1.4" fill="#1e0d3b" />
-                </g>
-              </svg>
-            </span>
-            <span className="text-xl font-black tracking-wider text-white">SCOTT <span className="text-[#fcd34d]">GAMES</span></span>
+            {/* Logo oficial SCOTT GAMES */}
+            <LogoScott className="h-9 w-auto" />
           </a>
           <div className="relative flex-1 max-w-xl mx-auto">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a72b8]">
@@ -244,11 +237,11 @@ export default function Home() {
                     <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow">{b.title}</h2>
                     <p className="text-white/85 text-sm mt-2">{b.subtitle}</p>
                     <div className="flex flex-wrap gap-2 mt-4">
-                      <a href="#catalogo" className="px-4 py-2 rounded-lg text-xs font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] transition">Reservar Preventa</a>
+                      <button onClick={() => handleHeroCta(b.targetSlug)} className="px-4 py-2 rounded-lg text-xs font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] transition">Reservar Preventa</button>
                       {b.href ? (
                         <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#8b5cf6]/80 hover:bg-[#8b5cf6] transition">{b.cta || 'Ver más'}</a>
                       ) : (
-                        <a href="#catalogo" className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#8b5cf6]/80 hover:bg-[#8b5cf6] transition">Ver Ofertas</a>
+                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#8b5cf6]/80 hover:bg-[#8b5cf6] transition">Ver Ofertas</button>
                       )}
                     </div>
                   </div>
@@ -409,7 +402,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
-            <p className="font-black tracking-wider text-[#c4b5fd]">SCOTT GAMES</p>
+            <LogoScott className="h-7 w-auto" />
             <p>© {new Date().getFullYear()} SCOTT GAMES · Lima, Perú. Todos los derechos reservados.</p>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#2dd4bf] hover:text-white transition">Facebook Oficial</a>
           </div>

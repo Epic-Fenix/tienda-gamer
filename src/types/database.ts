@@ -63,6 +63,7 @@ export interface Banner {
     image_url?: string | null;
     button_text?: string | null;
     link_url?: string | null;
+    target_product_slug?: string | null;
     is_active: boolean;
     order_index: number;
     created_at?: string;
