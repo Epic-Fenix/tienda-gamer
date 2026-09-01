@@ -72,7 +72,10 @@ export default function Home() {
 
   const [slide, setSlide] = useState(0);
   const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
-  const [now, setNow] = useState(() => Date.now());
+  // `now` arranca en 0 (valor estable en SSR y en el primer render del cliente)
+  // para evitar el mismatch de hidratación (#418); se activa tras montar.
+  const [now, setNow] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Oferta que termina al final del día (para la cuenta regresiva del hero).
@@ -83,6 +86,8 @@ export default function Home() {
   const cS = Math.floor((remaining % 60000) / 1000);
 
   useEffect(() => {
+    setMounted(true);
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -274,7 +279,7 @@ export default function Home() {
                   )}
                   {b.image_url && <div className="absolute inset-0 bg-gradient-to-r from-[#13072b]/95 via-[#13072b]/80 to-transparent" />}
                   <div className="relative z-10 max-w-md">
-                    <span className="inline-block text-[11px] font-black px-2 py-0.5 rounded bg-[#fcd34d] text-zinc-950 mb-3">🔥 OFERTA · termina en {pad(cH)}:{pad(cM)}:{pad(cS)}</span>
+                    <span className="inline-block text-[11px] font-black px-2 py-0.5 rounded bg-[#fcd34d] text-zinc-950 mb-3">🔥 OFERTA · termina en {mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}</span>
                     <h2 className="text-2xl md:text-4xl font-black text-white drop-shadow">{b.title}</h2>
                     <p className="text-white/85 text-sm mt-2">{b.subtitle}</p>
                     <div className="flex flex-wrap gap-2 mt-4">
