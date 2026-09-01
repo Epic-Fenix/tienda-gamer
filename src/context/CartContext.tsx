@@ -65,6 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     quantity: qty,
                     image_url: product.image_url ?? null,
                     min_reservation_pct: Number(product.min_reservation_pct) || 0,
+                    condition: product.condition ?? null,
                     stock: maxStock,
                 },
             ];

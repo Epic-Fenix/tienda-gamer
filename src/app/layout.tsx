@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import GamerAiBot from "@/components/GamerAiBot";
+import WhatsAppFab from "@/components/WhatsAppFab";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SCOTT GAMES",
-  description: "Tienda gamer — consolas, videojuegos y coleccionables con stock en vivo",
+  title: "SCOTT GAMES | Tienda Gamer en Lima - Feria Grau",
+  description: "Videojuegos físicos PS5, Nintendo Switch, Xbox, consolas y accesorios originales en Lima.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -28,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <CartProvider>
           {children}
+          <WhatsAppFab />
           <GamerAiBot />
         </CartProvider>
       </body>

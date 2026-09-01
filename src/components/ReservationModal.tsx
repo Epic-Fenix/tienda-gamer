@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/database';
 import { useRouter } from 'next/navigation';
-import { DELIVERY_OPTIONS, isShippingDelivery, DeliveryValue } from '@/lib/site';
+import { DELIVERY_OPTIONS, isShippingDelivery, deliveryLabel, DeliveryValue } from '@/lib/site';
+import { notifyOrderByEmail } from '@/lib/notify';
 
 interface Props {
     product: Product;
@@ -32,7 +33,7 @@ export default function ReservationModal({ product, onClose }: Props) {
         e.preventDefault();
         setLoading(true);
 
-        const orderCode = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+        const orderCode = `SCOTT-${Math.floor(1000 + Math.random() * 9000)}`;
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
@@ -57,6 +58,20 @@ export default function ReservationModal({ product, onClose }: Props) {
             setLoading(false);
             return;
         }
+
+        // Notificación automática por correo (no bloquea la redirección).
+        notifyOrderByEmail({
+            code: orderCode,
+            customerName: name,
+            customerPhone: phone,
+            customerEmail: email.trim() !== '' ? email.trim() : null,
+            deliveryLabel: deliveryLabel(deliveryType),
+            items: [{ name: product.name, quantity: 1, price: product.price, condition: product.condition ?? null }],
+            total: product.price,
+            paid: payNow,
+            pending: payLater,
+            isFullPayment: fullPayment,
+        });
 
         router.push(`/order/${orderCode}`);
     };

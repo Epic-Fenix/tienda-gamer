@@ -29,6 +29,7 @@ export interface OrderItem {
     quantity: number;
     image_url?: string | null;
     min_reservation_pct?: number;
+    condition?: string | null;
     // Solo para uso en el cliente (no se persiste): tope de unidades disponibles.
     stock?: number;
 }

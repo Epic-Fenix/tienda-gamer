@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import { formatSoles, PAYMENT_INFO } from '@/lib/payment';
-import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, DeliveryValue } from '@/lib/site';
+import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink } from '@/lib/payment';
+import { notifyOrderByEmail } from '@/lib/notify';
+import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, DeliveryValue } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
@@ -14,6 +15,11 @@ interface SuccessOrder {
     reservation: number;
     pending: number;
     isFull: boolean;
+    total: number;
+    name: string;
+    phone: string;
+    delivery: DeliveryValue;
+    items: { name: string; quantity: number; price: number; condition?: string | null }[];
 }
 
 export default function CartDrawer() {
@@ -43,23 +49,35 @@ export default function CartDrawer() {
         : 0;
     const netTotal = Math.max(0, total - discount);
 
-    // Montos a mostrar según la modalidad elegida (sobre el total con descuento).
-    const payNow = fullPayment ? netTotal : Math.min(reservationTotal, netTotal);
-    const payLater = round2(netTotal - payNow);
+    // Costo de envío según entrega (gratis si el subtotal alcanza el umbral).
+    const shipping = shippingCost(deliveryType, total);
+    const finalTotal = round2(netTotal + shipping);
 
-    // Enlace de checkout por WhatsApp con el resumen del pedido.
+    // Montos a mostrar según la modalidad elegida (adelanto 20% sobre productos).
+    const payNow = fullPayment ? finalTotal : Math.min(reservationTotal, netTotal);
+    const payLater = round2(finalTotal - payNow);
+
+    // Enlace de checkout por WhatsApp con el resumen estructurado del pedido.
     const whatsappCheckoutLink = () => {
-        const digits = PAYMENT_INFO.whatsapp.replace(/\D/g, '');
-        const lista = items.map((i) => `• ${i.quantity}x ${i.name} — S/. ${formatSoles(i.price * i.quantity)}`).join('\n');
-        const entrega = deliveryLabel(deliveryType);
+        const digits = PAYMENT_INFO.whatsappDigits;
+        const lista = items
+            .map((i) => `• ${i.quantity}x ${i.name} (S/. ${formatSoles(i.price)} c/u) — S/. ${formatSoles(i.price * i.quantity)}`)
+            .join('\n');
+        const envioTxt = shipping > 0 ? `S/. ${formatSoles(shipping)}` : 'Gratis';
+        const modalidad = fullPayment
+            ? `Pago total (100%) S/. ${formatSoles(finalTotal)}`
+            : `Adelanto 20% S/. ${formatSoles(payNow)}`;
         const msg =
             `🎮 *NUEVO PEDIDO - SCOTT GAMES LIMA*\n` +
             `----------------------------------\n` +
             `Productos:\n${lista}\n` +
-            `Total: S/. ${formatSoles(netTotal)}\n` +
-            `Tipo de entrega: ${entrega}\n` +
             `----------------------------------\n` +
-            `¡Hola! Quiero confirmar mi compra.`;
+            `Subtotal: S/. ${formatSoles(netTotal)}\n` +
+            `Tipo de entrega: ${deliveryShort(deliveryType)} (${envioTxt})\n` +
+            `Total a pagar: S/. ${formatSoles(finalTotal)}\n` +
+            `Modalidad: ${modalidad}\n` +
+            `----------------------------------\n` +
+            `¡Hola! Quiero confirmar mi pedido y adjuntar mi comprobante.`;
         return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
     };
 
@@ -105,11 +123,12 @@ export default function CartDrawer() {
         if (items.length === 0) return;
         setLoading(true);
 
-        const orderCode = `CART-${Math.floor(100000 + Math.random() * 900000)}`;
+        const orderCode = `SCOTT-${Math.floor(1000 + Math.random() * 9000)}`;
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
-        const totalAmount = round2(netTotal);
+        // El total del pedido incluye el costo de envío aplicado.
+        const totalAmount = round2(netTotal + shipping);
         const reservation = fullPayment ? totalAmount : round2(Math.min(reservationTotal, netTotal));
         const pending = round2(totalAmount - reservation);
 
@@ -121,6 +140,7 @@ export default function CartDrawer() {
             quantity: i.quantity,
             image_url: i.image_url ?? null,
             min_reservation_pct: i.min_reservation_pct ?? 0,
+            condition: i.condition ?? null,
         }));
 
         const { error } = await supabase.from('orders').insert({
@@ -162,7 +182,31 @@ export default function CartDrawer() {
                 .eq('id', appliedCoupon.id);
         }
 
-        setSuccess({ code: orderCode, reservation, pending, isFull: fullPayment });
+        // Notificación automática por correo al registrar la reserva (no bloquea).
+        notifyOrderByEmail({
+            code: orderCode,
+            customerName: name,
+            customerPhone: phone,
+            customerEmail: email.trim() !== '' ? email.trim() : null,
+            deliveryLabel: deliveryLabel(deliveryType),
+            items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price, condition: i.condition ?? null })),
+            total: totalAmount,
+            paid: reservation,
+            pending,
+            isFullPayment: fullPayment,
+        });
+
+        setSuccess({
+            code: orderCode,
+            reservation,
+            pending,
+            isFull: fullPayment,
+            total: totalAmount,
+            name,
+            phone,
+            delivery: deliveryType,
+            items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price, condition: i.condition ?? null })),
+        });
         setLoading(false);
     };
 
@@ -201,9 +245,9 @@ export default function CartDrawer() {
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={success ? undefined : closeCart} />
-                    <aside className="relative w-full max-w-md h-full bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+                    <aside className="relative w-full max-w-md h-full max-h-screen bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-5 border-b border-slate-800">
+                        <div className="flex items-center justify-between p-5 border-b border-slate-800 flex-shrink-0">
                             <h2 className="text-lg font-black text-white">
                                 {success ? '¡Reserva Confirmada!' : 'Tu Carrito'}
                             </h2>
@@ -215,17 +259,33 @@ export default function CartDrawer() {
                             <div className="flex-1 overflow-y-auto p-5 space-y-5">
                                 <div className="text-center">
                                     <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center text-2xl font-bold mb-2">✓</div>
-                                    <p className="text-xs text-slate-400">Código de tu reserva</p>
-                                    <p className="text-xl font-mono font-black text-indigo-400">{success.code}</p>
+                                    <p className="text-xs text-slate-400">Código de tu pedido</p>
+                                    <p className="text-xl font-mono font-black text-indigo-400">#{success.code}</p>
                                 </div>
                                 <div className="bg-white p-3 rounded-xl w-max mx-auto">
                                     <QRCodeSVG value={orderUrl(success.code)} size={150} />
                                 </div>
                                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
-                                    <div className="flex justify-between font-bold"><span className="text-emerald-400">{success.isFull ? 'Pago total:' : 'Abono a separar:'}</span><span>S/. {formatSoles(success.reservation)}</span></div>
+                                    <div className="flex justify-between text-slate-400"><span>Entrega:</span><span className="text-white font-semibold text-right">{deliveryLabel(success.delivery)}</span></div>
+                                    <div className="flex justify-between text-slate-400"><span>Total:</span><span className="text-white font-bold">S/. {formatSoles(success.total)}</span></div>
+                                    <div className="flex justify-between font-bold"><span className="text-emerald-400">{success.isFull ? 'Pago total (100%):' : 'Abono 20% separación:'}</span><span>S/. {formatSoles(success.reservation)}</span></div>
                                     <div className="flex justify-between font-bold text-amber-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(success.pending)}</span></div>
                                 </div>
-                                <PaymentInfo orderCode={success.code} amount={success.reservation} isFullPayment={success.isFull} />
+                                <PaymentInfo
+                                    orderCode={success.code}
+                                    amount={success.reservation}
+                                    isFullPayment={success.isFull}
+                                    comprobanteHref={buildPedidoWhatsappLink({
+                                        code: success.code,
+                                        name: success.name,
+                                        phone: success.phone,
+                                        deliveryLabel: deliveryLabel(success.delivery),
+                                        items: success.items,
+                                        total: success.total,
+                                        separacion: success.reservation,
+                                        isFullPayment: success.isFull,
+                                    })}
+                                />
                                 <button onClick={handleCloseSuccess} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition">
                                     Seguir comprando
                                 </button>
@@ -238,7 +298,7 @@ export default function CartDrawer() {
                             </div>
                         ) : (
                             <>
-                                <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                                <div className="flex-1 overflow-y-auto pr-2 p-5 space-y-3">
                                     {items.map((it) => (
                                         <div key={it.product_id} className="flex gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3">
                                             <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center shrink-0 border border-slate-800">
@@ -266,7 +326,7 @@ export default function CartDrawer() {
                                 </div>
 
                                 {/* Totales + formulario */}
-                                <div className="border-t border-slate-800 p-5 space-y-3">
+                                <div className="border-t border-slate-800 p-5 space-y-3 flex-shrink-0">
                                     {/* Barra de progreso hacia envío gratis (umbral S/. 300) */}
                                     {(() => {
                                         const THRESHOLD = 300;
@@ -359,7 +419,12 @@ export default function CartDrawer() {
                                                 <div className="flex justify-between text-slate-300"><span>Total con descuento:</span><span className="font-bold">S/. {formatSoles(netTotal)}</span></div>
                                             </>
                                         )}
-                                        <div className="flex justify-between text-indigo-400"><span>{fullPayment ? 'A pagar ahora (100%):' : 'Abono a separar:'}</span><span className="font-bold">S/. {formatSoles(payNow)}</span></div>
+                                        <div className="flex justify-between text-slate-400">
+                                            <span>Envío ({deliveryShort(deliveryType)}):</span>
+                                            <span className={`font-bold ${shipping > 0 ? 'text-white' : 'text-emerald-400'}`}>{shipping > 0 ? `S/. ${formatSoles(shipping)}` : 'Gratis'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-white pt-1 border-t border-slate-800/80"><span className="font-bold">Total a pagar:</span><span className="font-black">S/. {formatSoles(finalTotal)}</span></div>
+                                        <div className="flex justify-between text-indigo-400"><span>{fullPayment ? 'A pagar ahora (100%):' : 'Abono a separar (20%):'}</span><span className="font-bold">S/. {formatSoles(payNow)}</span></div>
                                         <div className="flex justify-between text-slate-400"><span>Saldo pendiente:</span><span>S/. {formatSoles(payLater)}</span></div>
                                     </div>
 

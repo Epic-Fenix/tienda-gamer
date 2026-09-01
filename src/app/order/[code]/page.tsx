@@ -7,7 +7,7 @@ import Link from 'next/link';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Order, OrderItem } from '@/types/database';
 import { orderUrl, STORE, deliveryLabel } from '@/lib/site';
-import { formatSoles } from '@/lib/payment';
+import { formatSoles, buildPedidoWhatsappLink } from '@/lib/payment';
 import { statusLabel, statusToStep } from '@/lib/orderStatus';
 
 export default function OrderPage({ params }: { params: Promise<{ code: string }> }) {
@@ -129,7 +129,21 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
 
                 {/* Datos de pago */}
                 <div className="bg-slate-950 p-4 rounded-xl mb-5 border border-slate-800/80">
-                    <PaymentInfo orderCode={order.order_code} amount={Number(order.paid_amount) || 0} isFullPayment={!!order.is_full_payment} />
+                    <PaymentInfo
+                        orderCode={order.order_code}
+                        amount={Number(order.paid_amount) || 0}
+                        isFullPayment={!!order.is_full_payment}
+                        comprobanteHref={buildPedidoWhatsappLink({
+                            code: order.order_code,
+                            name: order.customer_name,
+                            phone: order.customer_phone,
+                            deliveryLabel: deliveryLabel(order.delivery_type),
+                            items: items.length > 0 ? items : [{ name: product?.name || 'Producto', quantity: 1, price: Number(order.total_amount) || 0 }],
+                            total: Number(order.total_amount) || 0,
+                            separacion: Number(order.paid_amount) || 0,
+                            isFullPayment: !!order.is_full_payment,
+                        })}
+                    />
                 </div>
 
                 {/* Acciones (no se imprimen) */}

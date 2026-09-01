@@ -12,6 +12,15 @@ import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 import { SITE_URL } from '@/lib/site';
 
+type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders';
+
+const ADMIN_TABS: { key: AdminTab; label: string }[] = [
+    { key: 'inventario', label: '📦 Inventario / Stock' },
+    { key: 'banners', label: '🖼️ Banners & Hero' },
+    { key: 'reservas', label: '🧾 Reservas y Ventas' },
+    { key: 'backorders', label: '⏳ Backorders / Encargos' },
+];
+
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
@@ -51,10 +60,12 @@ export default function AdminDashboard() {
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
     const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '' });
-    const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
     // Etiqueta de envío
     const [packingOrder, setPackingOrder] = useState<Order | null>(null);
+
+    // Pestaña activa del panel.
+    const [tabActive, setTabActive] = useState<AdminTab>('inventario');
 
     // Valida la sesión activa de Supabase Auth al montar y escucha cambios.
     useEffect(() => {
@@ -125,6 +136,30 @@ export default function AdminDashboard() {
         setLoading(false);
     };
 
+    // Auto-cierre de sesión tras 30 minutos de inactividad.
+    useEffect(() => {
+        if (!authorized) return;
+        const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutos
+        let timer: ReturnType<typeof setTimeout>;
+        const doLogout = async () => {
+            await supabase.auth.signOut();
+            setAuthorized(false);
+            setAdminEmail('');
+            alert('Tu sesión se cerró automáticamente por 30 minutos de inactividad.');
+        };
+        const resetTimer = () => {
+            clearTimeout(timer);
+            timer = setTimeout(doLogout, TIMEOUT_MS);
+        };
+        const events: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+        events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+        resetTimer();
+        return () => {
+            clearTimeout(timer);
+            events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+        };
+    }, [authorized]);
+
     useEffect(() => {
         if (!authorized) return; // No cargar datos sin sesión válida
         fetchData();
@@ -137,7 +172,7 @@ export default function AdminDashboard() {
                 } else if (payload.eventType === 'UPDATE') {
                     setProducts((prev) => prev.map((p) => (p.id === payload.new.id ? (payload.new as Product) : p)));
                 } else if (payload.eventType === 'DELETE') {
-                    setProducts((prev) => prev.filter((p) => p.id === payload.old.id));
+                    setProducts((prev) => prev.filter((p) => p.id !== payload.old.id));
                 }
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchData())
@@ -298,19 +333,18 @@ export default function AdminDashboard() {
         setSaving(false);
     };
 
-    const handleDeleteProduct = async () => {
-        if (!deleteTarget) return;
-        const id = deleteTarget.id;
+    const handleDeleteProduct = async (id: string) => {
+        // Confirmación nativa para evitar borrados accidentales.
+        if (!window.confirm('¿Seguro que deseas eliminar este producto?')) return;
 
-        // Optimistic UI
+        // Actualización inmutable: la tabla y los KPIs se recalculan en vivo.
         setProducts((prev) => prev.filter((p) => p.id !== id));
 
         const { error } = await supabase.from('products').delete().eq('id', id);
         if (error) {
             alert('Error al eliminar el producto: ' + error.message);
-            fetchData();
+            fetchData(); // Revierte si el borrado en el servidor falló.
         }
-        setDeleteTarget(null);
     };
 
     // KPIs reactivos: se recalculan al cambiar productos, órdenes o backorders.
@@ -373,12 +407,40 @@ export default function AdminDashboard() {
     // Pantalla de login (Supabase Auth)
     if (!authorized) {
         return (
-            <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-                <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+            <main className="relative min-h-screen text-slate-100 flex items-center justify-center p-4 overflow-hidden bg-[#0d0520]">
+                {/* Fondo gamer */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-40"
+                    style={{ backgroundImage: 'url(https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg)' }}
+                />
+                {/* Overlay violeta profundo */}
+                <div className="absolute inset-0 bg-[#13072b]/90 backdrop-blur-md" />
+                {/* Resplandores neón */}
+                <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#8b5cf6]/30 blur-3xl" />
+                <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#2dd4bf]/20 blur-3xl" />
+
+                <div className="relative w-full max-w-sm bg-[#1e0d3b]/85 border border-[#3e1b75] rounded-2xl p-8 shadow-2xl shadow-[#8b5cf6]/40 ring-1 ring-[#8b5cf6]/25">
                     <div className="text-center mb-6">
-                        <div className="w-14 h-14 rounded-full bg-indigo-500/10 text-indigo-400 mx-auto flex items-center justify-center text-2xl mb-3">🔒</div>
-                        <h1 className="text-lg font-black text-white">SCOTT GAMES · Admin</h1>
-                        <p className="text-xs text-slate-400 mt-1">
+                        {/* Isotipo SCOTT GAMES */}
+                        <span className="relative inline-flex mb-3" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.8))' }}>
+                            <svg viewBox="0 0 48 48" className="w-14 h-14" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="adminLogo" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0" stopColor="#8b5cf6" />
+                                        <stop offset="1" stopColor="#2dd4bf" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M24 3l16 5v12c0 10-6.8 17.6-16 21-9.2-3.4-16-11-16-21V8l16-5z" fill="#1e0d3b" stroke="url(#adminLogo)" strokeWidth="2.5" strokeLinejoin="round" />
+                                <g fill="#fcd34d">
+                                    <rect x="13" y="21" width="22" height="10" rx="5" />
+                                    <circle cx="16.5" cy="26" r="1.6" fill="#1e0d3b" />
+                                    <rect x="20.2" y="25.2" width="1.6" height="1.6" fill="#1e0d3b" />
+                                    <circle cx="31.5" cy="26" r="1.4" fill="#1e0d3b" />
+                                </g>
+                            </svg>
+                        </span>
+                        <h1 className="text-lg font-black text-white tracking-wide">SCOTT <span className="text-[#fcd34d]">GAMES</span> · Admin</h1>
+                        <p className="text-xs text-[#c4b5fd] mt-1">
                             {authView === 'login' ? 'Inicia sesión con tu cuenta de administrador.' : 'Recupera el acceso a tu cuenta.'}
                         </p>
                     </div>
@@ -483,6 +545,21 @@ export default function AdminDashboard() {
                     </div>
                 </header>
 
+                {/* Navegación por pestañas */}
+                <nav className="flex flex-wrap gap-2 border-b border-slate-800">
+                    {ADMIN_TABS.map((t) => (
+                        <button
+                            key={t.key}
+                            onClick={() => setTabActive(t.key)}
+                            className={`px-4 py-2.5 rounded-t-lg text-xs font-bold transition border-b-2 -mb-px ${tabActive === t.key ? 'border-indigo-500 text-white bg-slate-900' : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'}`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </nav>
+
+                {tabActive === 'inventario' && (
+                <>
                 {/* KPIs / Métricas */}
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
@@ -583,7 +660,7 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="py-3 text-right space-x-1 whitespace-nowrap">
                                             <button onClick={() => openEditModal(item)} className="px-2.5 py-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white rounded font-bold transition">Editar</button>
-                                            <button onClick={() => setDeleteTarget(item)} className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded font-bold transition">Eliminar</button>
+                                            <button onClick={() => handleDeleteProduct(item.id)} className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded font-bold transition">Eliminar</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -592,6 +669,11 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
+                </>
+                )}
+
+                {tabActive === 'reservas' && (
+                <>
                 {/* Órdenes */}
                 <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                     <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">Últimas Reservas / Comprobantes</h2>
@@ -637,6 +719,11 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
+                </>
+                )}
+
+                {tabActive === 'backorders' && (
+                <>
                 {/* Encargos / Backorders */}
                 <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
@@ -719,14 +806,20 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
+                {/* Solicitudes de trueque */}
+                <TradeInManager />
+                </>
+                )}
+
+                {tabActive === 'banners' && (
+                <>
                 {/* Gestor de banners del carrusel */}
                 <BannerManager />
 
                 {/* Gestor de cupones de descuento */}
                 <CouponManager />
-
-                {/* Solicitudes de trueque */}
-                <TradeInManager />
+                </>
+                )}
             </div>
 
             {/* Modal Nuevo Producto */}
@@ -899,22 +992,6 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* Modal Confirmar Eliminación */}
-            {deleteTarget && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center">
-                        <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center text-2xl mb-3">🗑️</div>
-                        <h3 className="text-lg font-bold text-white mb-1">¿Eliminar producto?</h3>
-                        <p className="text-xs text-slate-400 mb-5">
-                            Se eliminará <strong className="text-white">{deleteTarget.name}</strong> de forma permanente. Esta acción no se puede deshacer.
-                        </p>
-                        <div className="flex gap-2">
-                            <button onClick={() => setDeleteTarget(null)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">Cancelar</button>
-                            <button onClick={handleDeleteProduct} className="w-1/2 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition">Sí, eliminar</button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Etiqueta de envío / packing slip */}
             {packingOrder && <PackingSlipModal order={packingOrder} onClose={() => setPackingOrder(null)} />}
