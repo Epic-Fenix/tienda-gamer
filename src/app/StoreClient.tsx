@@ -235,7 +235,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <a href="#" className="flex items-center gap-2 shrink-0 group">
             {/* Logo oficial SCOTT GAMES */}
-            <LogoScott className="h-[42px] w-auto" />
+            <LogoScott />
           </a>
           <div className="relative flex-1 max-w-xl mx-auto">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a72b8]">
@@ -443,7 +443,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
-            <LogoScott className="h-7 w-auto" />
+            <LogoScott />
             <p>© {new Date().getFullYear()} SCOTT GAMES · Lima, Perú. Todos los derechos reservados.</p>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#2dd4bf] hover:text-white transition">Facebook Oficial</a>
           </div>
