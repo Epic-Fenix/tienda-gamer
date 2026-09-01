@@ -409,14 +409,15 @@ export default function AdminDashboard() {
     // Pantalla de login (Supabase Auth)
     if (!authorized) {
         return (
-            <main className="relative min-h-screen text-slate-100 flex items-center justify-center p-4 overflow-hidden bg-[#0d0520]">
+            <main className="relative min-h-screen text-slate-100 flex items-center justify-center p-4 overflow-hidden bg-[#0c0414]">
                 {/* Fondo gamer */}
                 <div
-                    className="absolute inset-0 bg-cover bg-center opacity-40"
+                    className="absolute inset-0 bg-cover bg-center opacity-60"
                     style={{ backgroundImage: 'url(https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg)' }}
                 />
                 {/* Overlay violeta profundo */}
-                <div className="absolute inset-0 bg-[#13072b]/90 backdrop-blur-md" />
+                <div className="absolute inset-0 bg-[#0c0414]/85 backdrop-blur-sm" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0414] via-transparent to-[#0c0414]/60" />
                 {/* Resplandores neón */}
                 <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#8b5cf6]/30 blur-3xl" />
                 <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#2dd4bf]/20 blur-3xl" />

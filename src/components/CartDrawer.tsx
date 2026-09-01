@@ -300,10 +300,10 @@ export default function CartDrawer() {
                             </div>
                         ) : (
                             <>
-                                <div className="max-h-[35vh] overflow-y-auto pr-2 p-5 space-y-3">
+                                <div className="flex-1 min-h-[220px] max-h-[40vh] overflow-y-auto space-y-3 p-3">
                                     {items.map((it) => (
                                         <div key={it.product_id} className="flex gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3">
-                                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center shrink-0 border border-slate-800">
+                                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center shrink-0 border border-slate-800">
                                                 {it.image_url ? (
                                                     <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" />
                                                 ) : (
@@ -311,17 +311,17 @@ export default function CartDrawer() {
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-white truncate">{it.name}</p>
-                                                <p className="text-xs text-slate-400">S/. {formatSoles(it.price)} c/u</p>
+                                                <p className="text-sm font-semibold text-white leading-tight line-clamp-2">{it.name}</p>
+                                                <p className="text-xs text-slate-400 mt-0.5">S/. {formatSoles(it.price)} c/u</p>
                                                 <div className="flex items-center gap-2 mt-2">
-                                                    <button onClick={() => setQuantity(it.product_id, it.quantity - 1)} className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold">−</button>
-                                                    <span className="text-sm font-bold text-white w-6 text-center">{it.quantity}</span>
-                                                    <button onClick={() => setQuantity(it.product_id, it.quantity + 1)} disabled={!!it.stock && it.quantity >= it.stock} className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold disabled:opacity-30 disabled:cursor-not-allowed">+</button>
-                                                    <button onClick={() => removeItem(it.product_id)} className="ml-auto text-[11px] text-rose-400 hover:text-rose-300">Quitar</button>
+                                                    <button onClick={() => setQuantity(it.product_id, it.quantity - 1)} className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold shrink-0">−</button>
+                                                    <span className="text-sm font-bold text-white w-6 text-center shrink-0">{it.quantity}</span>
+                                                    <button onClick={() => setQuantity(it.product_id, it.quantity + 1)} disabled={!!it.stock && it.quantity >= it.stock} className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold disabled:opacity-30 disabled:cursor-not-allowed shrink-0">+</button>
+                                                    <button onClick={() => removeItem(it.product_id)} className="ml-auto text-[11px] text-rose-400 hover:text-rose-300 shrink-0">Quitar</button>
                                                 </div>
                                             </div>
-                                            <div className="text-right shrink-0">
-                                                <p className="text-sm font-black text-white">S/. {formatSoles(it.price * it.quantity)}</p>
+                                            <div className="text-right shrink-0 self-start">
+                                                <p className="text-sm font-black text-white whitespace-nowrap">S/. {formatSoles(it.price * it.quantity)}</p>
                                             </div>
                                         </div>
                                     ))}

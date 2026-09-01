@@ -22,7 +22,7 @@ export default function LogoScott({ className = 'h-9 w-auto', withText = true }:
     return (
         <span className="inline-flex items-center gap-2">
             <span className="relative inline-flex" style={{ filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.7))' }}>
-                <svg viewBox="0 0 48 48" className="w-8 h-8" aria-hidden="true">
+                <svg viewBox="0 0 48 48" className="w-9 h-9" aria-hidden="true">
                     <defs>
                         <linearGradient id="logoScottFallback" x1="0" y1="0" x2="1" y2="1">
                             <stop offset="0" stopColor="#8b5cf6" />
@@ -38,7 +38,7 @@ export default function LogoScott({ className = 'h-9 w-auto', withText = true }:
                     </g>
                 </svg>
             </span>
-            {withText && <span className="text-xl font-black tracking-wider text-white">SCOTT <span className="text-[#fcd34d]">GAMES</span></span>}
+            {withText && <span className="text-2xl font-black tracking-wider text-white">SCOTT <span className="text-[#fcd34d]">GAMES</span></span>}
         </span>
     );
 }

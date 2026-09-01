@@ -104,9 +104,50 @@ export default function Home() {
     document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
     if (targetSlug) {
       const prod = products.find((p) => p.slug === targetSlug);
-      if (prod) setTimeout(() => setQuickViewProduct(prod), 500);
+      if (prod) setTimeout(() => openQuickView(prod), 500);
     }
   };
+
+  // Abre la ficha rápida y refleja el producto en la URL (?p=slug) para compartir.
+  const openQuickView = (p: Product) => {
+    setQuickViewProduct(p);
+    if (typeof window !== 'undefined' && p.slug) {
+      window.history.pushState({ p: p.slug }, '', `${window.location.pathname}?p=${encodeURIComponent(p.slug)}`);
+    }
+  };
+  // Cierra la ficha y limpia la URL.
+  const closeQuickView = () => {
+    setQuickViewProduct(null);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', window.location.pathname);
+    }
+  };
+
+  // Deep-link de entrada: si la URL trae ?p=slug o #slug, abre esa ficha una vez.
+  const deepLinkedRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkedRef.current || products.length === 0 || typeof window === 'undefined') return;
+    deepLinkedRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('p') || (window.location.hash ? window.location.hash.slice(1) : '');
+    if (slug) {
+      const prod = products.find((p) => p.slug === slug);
+      if (prod) setQuickViewProduct(prod);
+    }
+  }, [products]);
+
+  // Sincroniza el botón "atrás" del navegador con el modal.
+  useEffect(() => {
+    const onPop = () => {
+      if (typeof window === 'undefined') return;
+      const slug = new URLSearchParams(window.location.search).get('p');
+      if (!slug) { setQuickViewProduct(null); return; }
+      const prod = products.find((p) => p.slug === slug);
+      setQuickViewProduct(prod ?? null);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [products]);
 
   // Banners activos desde Supabase (realtime), con respaldo local.
   useEffect(() => {
@@ -143,7 +184,7 @@ export default function Home() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
         if (payload.eventType === 'INSERT') setProducts((prev) => [payload.new as Product, ...prev]);
         else if (payload.eventType === 'UPDATE') setProducts((prev) => prev.map((p) => (p.id === payload.new.id ? (payload.new as Product) : p)));
-        else if (payload.eventType === 'DELETE') setProducts((prev) => prev.filter((p) => p.id === payload.old.id));
+        else if (payload.eventType === 'DELETE') setProducts((prev) => prev.filter((p) => p.id !== payload.old.id));
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -194,7 +235,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <a href="#" className="flex items-center gap-2 shrink-0 group">
             {/* Logo oficial SCOTT GAMES */}
-            <LogoScott className="h-9 w-auto" />
+            <LogoScott className="h-[42px] w-auto" />
           </a>
           <div className="relative flex-1 max-w-xl mx-auto">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a72b8]">
@@ -350,7 +391,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((item) => (
-                <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={setQuickViewProduct} />
+                <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
               ))}
             </div>
           )}
@@ -411,7 +452,7 @@ export default function Home() {
 
       {/* Modales y utilidades */}
       {quickViewProduct && (
-        <ProductQuickView product={quickViewProduct} onClose={() => setQuickViewProduct(null)} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} />
+        <ProductQuickView product={quickViewProduct} onClose={closeQuickView} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} />
       )}
       {selectedProduct && <ReservationModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
       {backorderProduct && <BackorderModal product={backorderProduct} onClose={() => setBackorderProduct(null)} />}
