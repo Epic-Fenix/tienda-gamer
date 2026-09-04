@@ -34,7 +34,7 @@ type Slide = {
 const DEFAULT_SLIDES: Slide[] = [
   { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5', badge: '🔥 NOVEDAD PS5' },
   { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5', badge: '⚡ RESERVA CON 20%' },
-  { title: '🔄 Plan Canje / Trueque Gamer', subtitle: 'Deja tu disco o consola usada como parte de pago y lleva lo último ahorrando.', gradient: 'from-[#1e1b4b] via-[#312e81] to-[#0d9488]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_hero.jpg', cta: 'Cotizar Canje Ahora', action: 'tradeIn', badge: '🔄 PLAN CANJE' },
+  { title: '🔄 Plan Canje / Trueque Gamer', subtitle: 'Deja tu disco o consola usada como parte de pago y lleva lo último ahorrando.', gradient: 'from-[#1e1b4b] via-[#312e81] to-[#0d9488]', image_url: '/ginyu-change.jpg', cta: 'Cotizar mi Trueque', action: 'tradeIn', badge: '🔄 PLAN CANJE' },
   { title: '📦 Envío Gratis a todo el Perú', subtitle: 'Por compras desde S/. 300 recibe tus títulos favoritos sin costo directo a tu puerta.', gradient: 'from-[#064e3b] via-[#047857] to-[#10b981]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Explorar Catálogo', action: 'catalog', badge: '🚚 ENVÍO GRATIS' },
   { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía oficial de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL, badge: '💥 OFERTAS' },
 ];
@@ -45,15 +45,14 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'todos', label: 'Todos', icon: '🎮', match: () => true },
   { key: 'ps5', label: 'PS5', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS5') },
   { key: 'ps4', label: 'PS4', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS4') },
-  { key: 'switch', label: 'Switch', icon: '🟥', match: (p) => /switch|nintendo/.test(catText(p)) },
-  { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
+  { key: 'switch', label: 'Nintendo Switch', icon: '🔴', match: (p) => /switch|nintendo/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },
-  { key: 'coleccionables', label: 'Coleccionables', icon: '🧸', match: (p) => /anime|colec|figura|funko|peluche/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'joyas', label: 'Joyas Épicas', icon: '💎', match: (p) => /joya|épic|epic|oculta/.test(`${p.category} ${p.name}`.toLowerCase()) },
-  { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
+  { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' || p.condition?.toLowerCase() === 'seminuevo' || p.condition === 'Seminuevo' },
+  { key: 'nuevos', label: 'Nuevos', icon: '✨', match: (p) => p.condition === 'Nuevo' || p.condition?.toLowerCase() === 'nuevo' },
 ];
 
-const GENRES = ['Acción', 'Aventura', 'RPG', 'Carreras', 'Deportes', 'Indie'];
+const GENRES = ['Acción', 'Aventura', 'Carreras', 'Deportes'];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
@@ -279,9 +278,8 @@ export default function Home() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Busca juegos, consolas, accesorios..."
-              className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-16 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
+              className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
             />
-            <span className="hidden sm:flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center gap-1 text-[10px] text-[#8a72b8] border border-[#3e1b75] rounded px-1.5 py-0.5">Ctrl K</span>
           </div>
           <button onClick={openCart} className="relative shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-zinc-950 bg-[#fcd34d] hover:bg-[#fbbf24] transition">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
@@ -294,18 +292,32 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Gran Banner Promocional (ancho completo) */}
         <section className="w-full">
-          <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#3e1b75] bg-[#13072b] min-h-[360px] md:min-h-[410px] flex flex-col justify-between shadow-2xl shadow-purple-950/40">
+          <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#3e1b75] bg-[#13072b] min-h-[340px] md:min-h-[390px] flex flex-col justify-center shadow-2xl shadow-purple-950/40">
             {/* Carrusel */}
-            <div className="relative flex-1 flex overflow-hidden">
+            <div className="relative w-full flex overflow-hidden">
               <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
                 {slides.map((b, i) => (
                   <div key={i} className={`relative min-w-full p-6 sm:p-10 md:p-12 lg:p-14 flex flex-col justify-center bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}>
-                    {/* Imagen real de fondo (con degradé para alto contraste); cae al gradiente si falla */}
+                    {/* Imagen temática renderizada a la derecha con recorte elegante y alto contraste */}
                     {b.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={b.image_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute right-0 top-0 bottom-0 w-full sm:w-3/5 md:w-1/2 lg:w-3/5 overflow-hidden pointer-events-none">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={b.image_url}
+                          alt=""
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          className="w-full h-full object-cover object-center sm:object-right"
+                        />
+                        {/* Recorte y degradado lateral para fundirse suavemente con el fondo oscuro y texto */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#13072b] via-[#13072b]/60 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#13072b]/80 via-transparent to-transparent" />
+                      </div>
                     )}
-                    {b.image_url && <div className="absolute inset-0 bg-gradient-to-r from-[#0d0520]/95 via-[#13072b]/85 to-[#13072b]/30 md:to-transparent" />}
+                    {/* Overlay de refuerzo de contraste para lectura óptima del texto */}
+                    {b.image_url && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#0d0520]/95 via-[#13072b]/80 to-transparent sm:w-2/3 pointer-events-none" />
+                    )}
+
                     <div className="relative z-10 max-w-xl md:max-w-2xl py-2">
                       <span className="inline-block text-[11px] font-black px-2.5 py-1 rounded bg-[#fcd34d] text-zinc-950 mb-3 shadow-md">
                         {b.badge || `🔥 OFERTA · termina en ${mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}`}
@@ -314,16 +326,16 @@ export default function Home() {
                       <p className="text-white/90 text-sm sm:text-base md:text-lg mt-2.5 max-w-xl leading-relaxed">{b.subtitle}</p>
                       <div className="flex flex-wrap gap-2.5 mt-5">
                         {b.action === 'tradeIn' ? (
-                          <button onClick={() => setTradeInOpen(true)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] transition shadow-md">
-                            🔄 {b.cta || 'Cotizar Canje Ahora'}
+                          <button onClick={() => setTradeInOpen(true)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-teal-900/30">
+                            🔄 {b.cta || 'Cotizar mi Trueque'}
                           </button>
                         ) : b.action === 'catalog' ? (
-                          <a href="#catalogo" className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] transition shadow-md">
+                          <a href="#catalogo" className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md">
                             📦 {b.cta || 'Explorar Catálogo'}
                           </a>
                         ) : (
                           <>
-                            <button onClick={() => handleHeroCta(b)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] transition shadow-md">
+                            <button onClick={() => handleHeroCta(b)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md">
                               Reservar Preventa
                             </button>
                             {b.href ? (
@@ -346,42 +358,10 @@ export default function Home() {
               {/* Controles del carrusel */}
               <button onClick={prevSlide} aria-label="Anterior" className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur text-white flex items-center justify-center z-10 transition text-lg">‹</button>
               <button onClick={nextSlide} aria-label="Siguiente" className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur text-white flex items-center justify-center z-10 transition text-lg">›</button>
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                 {slides.map((_, i) => (
                   <button key={i} onClick={() => setSlide(i)} aria-label={`Banner ${i + 1}`} className={`h-2 rounded-full transition-all ${i === slide ? 'w-6 bg-[#fcd34d]' : 'w-2 bg-white/40'}`} />
                 ))}
-              </div>
-            </div>
-
-            {/* Cintillo integrado de beneficios destacados (Plan Canje / Envío Gratis / Stock Físico) */}
-            <div className="relative z-10 border-t border-[#3e1b75]/90 bg-[#0d0520]/90 backdrop-blur-md px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <button
-                onClick={() => setTradeInOpen(true)}
-                className="group inline-flex items-center gap-2 text-left text-[#c4b5fd] hover:text-white transition"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#8b5cf6]/30 text-sm group-hover:scale-110 transition">🔄</span>
-                <span>
-                  <strong className="text-[#2dd4bf] font-black uppercase tracking-wide">Plan Canje / Trueque:</strong> Deja tu juego usado como parte de pago <span className="underline group-hover:text-[#2dd4bf] ml-1 font-bold">Cotizar →</span>
-                </span>
-              </button>
-
-              <div className="hidden md:block w-px h-5 bg-[#3e1b75]" />
-
-              <a
-                href="#catalogo"
-                className="group inline-flex items-center gap-2 text-left text-[#c4b5fd] hover:text-white transition"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fcd34d]/30 text-sm group-hover:scale-110 transition">📦</span>
-                <span>
-                  <strong className="text-[#fcd34d] font-black uppercase tracking-wide">Envío Gratis a todo el Perú:</strong> Por compras desde S/. 300 <span className="underline group-hover:text-[#fcd34d] ml-1 font-bold">Ver catálogo →</span>
-                </span>
-              </a>
-
-              <div className="hidden lg:block w-px h-5 bg-[#3e1b75]" />
-
-              <div className="hidden sm:inline-flex items-center gap-2 text-[#94a3b8]">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2dd4bf]/20 text-sm">📍</span>
-                <span className="font-semibold">Stock Físico en Tienda Lima</span>
               </div>
             </div>
           </div>

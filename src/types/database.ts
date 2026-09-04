@@ -69,6 +69,21 @@ export interface Banner {
     created_at?: string;
 }
 
+export interface HeroBanner {
+    id: string;
+    title: string;
+    subtitle: string;
+    badge?: string;
+    gradient: string;
+    button_primary_text: string;
+    button_primary_link: string;
+    button_secondary_text?: string;
+    button_secondary_link?: string;
+    image_url?: string;
+    is_active: boolean;
+    display_order: number;
+}
+
 export type DiscountType = 'percent' | 'fixed';
 
 export interface Coupon {
