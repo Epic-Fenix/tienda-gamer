@@ -310,7 +310,7 @@ export default function Home() {
               {slides.map((b, i) => (
                 <div
                   key={i}
-                  className={`min-w-full min-h-[340px] sm:min-h-[400px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
+                  className={`min-w-full min-h-[220px] sm:min-h-[340px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
                 >
                   {/* Imagen a pantalla completa: cubre TODO el banner */}
                   {b.image_url && (
@@ -325,13 +325,13 @@ export default function Home() {
                   {/* Degradé para legibilidad del texto (oscuro a la izquierda, revela la imagen a la derecha) */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10 md:bg-gradient-to-r md:from-black/85 md:via-black/55 md:to-transparent" />
                   {/* Contenido sobre la imagen */}
-                  <div className="relative z-10 w-full md:max-w-xl p-5 sm:p-8 md:p-12 flex flex-col justify-end md:justify-center items-start">
+                  <div className="relative z-10 w-full md:max-w-xl p-4 sm:p-8 md:p-12 flex flex-col justify-end md:justify-center items-start">
                     <span className="px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-black/40 text-amber-300 rounded-full border border-amber-300/30 mb-3 md:mb-4">
                       {b.badge || (mounted ? `🔥 Oferta · termina en ${pad(cH)}:${pad(cM)}:${pad(cS)}` : '🔥 Oferta')}
                     </span>
-                    <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
-                    <p className="mt-2 md:mt-3 text-sm sm:text-base md:text-lg text-gray-200 max-w-lg drop-shadow line-clamp-3">{b.subtitle}</p>
-                    <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 md:mt-6">
+                    <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
+                    <p className="mt-1 md:mt-3 text-xs sm:text-base md:text-lg text-gray-200 max-w-lg drop-shadow line-clamp-2 md:line-clamp-3">{b.subtitle}</p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 md:mt-6">
                       <button onClick={() => heroPrimary(b)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 transition">{b.primaryLabel || 'Reservar Preventa'}</button>
                       {!b.action && (b.href ? (
                         <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
@@ -477,13 +477,19 @@ export default function Home() {
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.email}</span>
               </span>
             </a>
-            <div className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Feria Grau, Lima, Perú')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#2dd4bf]/60 transition"
+            >
               <span className="text-lg">📍</span>
               <span className="min-w-0">
                 <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">Ubicación</span>
                 <span className="block text-sm font-bold text-white">{CONTACT.location}</span>
+                <span className="block text-[10px] text-[#2dd4bf]">Ver en Google Maps →</span>
               </span>
-            </div>
+            </a>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
