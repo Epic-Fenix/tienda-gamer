@@ -39,7 +39,8 @@ interface CategoryDef { key: string; label: string; icon: string; match: (p: Pro
 const catText = (p: Product) => `${p.platform ?? ''} ${p.category} ${p.name}`.toLowerCase();
 const CATEGORIES: CategoryDef[] = [
   { key: 'todos', label: 'Todos', icon: '🎮', match: () => true },
-  { key: 'ps', label: 'PS5 / PS4', icon: '🟦', match: (p) => /playstation|ps5|ps4|ps3/.test(catText(p)) },
+  { key: 'ps5', label: 'PS5', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS5') },
+  { key: 'ps4', label: 'PS4', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS4') },
   { key: 'switch', label: 'Switch', icon: '🟥', match: (p) => /switch|nintendo/.test(catText(p)) },
   { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },

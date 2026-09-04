@@ -141,15 +141,25 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
             </div>
 
             {/* Precio */}
-            {hasDiscount && (
-                <div className="mt-auto flex items-center gap-2 flex-wrap">
-                    <span className="line-through text-zinc-400 text-xs">S/. {formatSoles(old)}</span>
-                    <span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-[#fcd34d] text-zinc-950">
-                        -{Math.round((1 - product.price / old) * 100)}%
+            {product.stock === 0 ? (
+                <div className="mt-auto">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        🔴 AGOTADO
                     </span>
                 </div>
+            ) : (
+                <>
+                    {hasDiscount && (
+                        <div className="mt-auto flex items-center gap-2 flex-wrap">
+                            <span className="line-through text-zinc-400 text-xs">S/. {formatSoles(old)}</span>
+                            <span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-[#fcd34d] text-zinc-950">
+                                -{Math.round((1 - product.price / old) * 100)}%
+                            </span>
+                        </div>
+                    )}
+                    <span className={`text-xl font-black text-white leading-tight ${hasDiscount ? '' : 'mt-auto'}`}>S/. {formatSoles(product.price)}</span>
+                </>
             )}
-            <span className={`text-xl font-black text-white leading-tight ${hasDiscount ? '' : 'mt-auto'}`}>S/. {formatSoles(product.price)}</span>
 
             {/* Acciones */}
             <div className="mt-2.5 flex flex-col gap-1.5">
@@ -169,12 +179,20 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                         </button>
                     </>
                 ) : (
-                    <button
-                        onClick={() => onBackorder(product)}
-                        className="w-full py-2 rounded-lg text-xs font-bold text-[#c4b5fd] bg-[#3e1b75]/50 hover:bg-[#3e1b75] transition"
-                    >
-                        Encargar producto
-                    </button>
+                    <>
+                        <button
+                            disabled
+                            className="w-full py-2 rounded-lg text-xs font-black bg-zinc-800 text-zinc-400 cursor-not-allowed border border-zinc-700/50"
+                        >
+                            🔴 Agotado / Sin Stock
+                        </button>
+                        <button
+                            onClick={() => onBackorder(product)}
+                            className="w-full py-1.5 rounded-lg text-[11px] font-bold text-[#c4b5fd] bg-[#3e1b75]/50 hover:bg-[#3e1b75] transition"
+                        >
+                            Encargar producto
+                        </button>
+                    </>
                 )}
             </div>
         </div>

@@ -63,11 +63,19 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                         <p className="text-xs text-slate-400 mt-1 line-clamp-3">{product.description || 'Sin descripción disponible.'}</p>
 
                         {/* Precio */}
-                        <div className="mt-3 flex items-end gap-2">
-                            {hasDiscount && <span className="text-sm text-slate-500 line-through">S/. {formatSoles(old)}</span>}
-                            <span className="text-2xl font-black text-white">S/. {formatSoles(product.price)}</span>
-                            {hasDiscount && <span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-fuchsia-600 text-white mb-1">-{discountPct}%</span>}
-                        </div>
+                        {product.stock === 0 ? (
+                            <div className="mt-3">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                    🔴 AGOTADO
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="mt-3 flex items-end gap-2">
+                                {hasDiscount && <span className="text-sm text-slate-500 line-through">S/. {formatSoles(old)}</span>}
+                                <span className="text-2xl font-black text-white">S/. {formatSoles(product.price)}</span>
+                                {hasDiscount && <span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-fuchsia-600 text-white mb-1">-{discountPct}%</span>}
+                            </div>
+                        )}
                         <p className="text-[11px] mt-1 font-semibold">
                             {product.stock <= 0 ? (
                                 <span className="text-rose-400">Agotado</span>
@@ -106,12 +114,20 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                                     </button>
                                 </>
                             ) : (
-                                <button
-                                    onClick={() => { onBackorder(product); onClose(); }}
-                                    className="w-full py-2.5 rounded-lg text-sm font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition"
-                                >
-                                    Encargar producto
-                                </button>
+                                <>
+                                    <button
+                                        disabled
+                                        className="w-full py-2.5 rounded-lg text-sm font-black bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                                    >
+                                        🔴 Agotado / Sin Stock
+                                    </button>
+                                    <button
+                                        onClick={() => { onBackorder(product); onClose(); }}
+                                        className="w-full py-2 rounded-lg text-sm font-bold text-slate-300 bg-slate-800/70 hover:bg-slate-700 transition"
+                                    >
+                                        Encargar producto
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
