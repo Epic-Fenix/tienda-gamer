@@ -90,6 +90,8 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState('');
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recientes');
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
@@ -251,6 +253,9 @@ export default function Home() {
     return sorted;
   }, [products, searchTerm, categoryKey, genre, minPrice, maxPrice, onlyInStock, sortBy]);
 
+  // Reinicia la paginación al cambiar filtros, búsqueda u orden.
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [categoryKey, searchTerm, genre, minPrice, maxPrice, onlyInStock, sortBy]);
+
   const current = slides[slide] ?? slides[0];
 
   return (
@@ -305,7 +310,7 @@ export default function Home() {
               {slides.map((b, i) => (
                 <div
                   key={i}
-                  className={`min-w-full min-h-[380px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
+                  className={`min-w-full min-h-[340px] sm:min-h-[400px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
                 >
                   {/* Imagen a pantalla completa: cubre TODO el banner */}
                   {b.image_url && (
@@ -318,20 +323,20 @@ export default function Home() {
                     />
                   )}
                   {/* Degradé para legibilidad del texto (oscuro a la izquierda, revela la imagen a la derecha) */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10 md:bg-gradient-to-r md:from-black/85 md:via-black/55 md:to-transparent" />
                   {/* Contenido sobre la imagen */}
-                  <div className="relative z-10 w-full md:max-w-xl p-8 md:p-12 flex flex-col justify-center items-start">
-                    <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider bg-black/40 text-amber-300 rounded-full border border-amber-300/30 mb-4">
+                  <div className="relative z-10 w-full md:max-w-xl p-5 sm:p-8 md:p-12 flex flex-col justify-end md:justify-center items-start">
+                    <span className="px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-black/40 text-amber-300 rounded-full border border-amber-300/30 mb-3 md:mb-4">
                       {b.badge || (mounted ? `🔥 Oferta · termina en ${pad(cH)}:${pad(cM)}:${pad(cS)}` : '🔥 Oferta')}
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
-                    <p className="mt-3 text-base md:text-lg text-gray-200 max-w-lg drop-shadow">{b.subtitle}</p>
-                    <div className="flex flex-wrap gap-3 mt-6">
-                      <button onClick={() => heroPrimary(b)} className="px-5 py-2.5 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 transition">{b.primaryLabel || 'Reservar Preventa'}</button>
+                    <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
+                    <p className="mt-2 md:mt-3 text-sm sm:text-base md:text-lg text-gray-200 max-w-lg drop-shadow line-clamp-3">{b.subtitle}</p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 md:mt-6">
+                      <button onClick={() => heroPrimary(b)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 transition">{b.primaryLabel || 'Reservar Preventa'}</button>
                       {!b.action && (b.href ? (
-                        <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
+                        <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
                       ) : (
-                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">Ver Ofertas</button>
+                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">Ver Ofertas</button>
                       ))}
                     </div>
                   </div>
@@ -415,11 +420,24 @@ export default function Home() {
           ) : filteredProducts.length === 0 ? (
             <p className="text-center text-[#8a72b8] py-10">No se encontraron productos con esos criterios.</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((item) => (
-                <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredProducts.slice(0, visibleCount).map((item) => (
+                  <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
+                ))}
+              </div>
+              {visibleCount < filteredProducts.length && (
+                <div className="flex flex-col items-center gap-2 mt-8">
+                  <button
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                    className="px-8 py-3 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/20 transition"
+                  >
+                    Ver más productos
+                  </button>
+                  <span className="text-[11px] text-[#8a72b8]">Mostrando {visibleCount} de {filteredProducts.length}</span>
+                </div>
+              )}
+            </>
           )}
         </section>
 
