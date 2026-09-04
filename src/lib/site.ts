@@ -7,7 +7,7 @@ export const orderUrl = (code: string) => `${SITE_URL}/order/${code}`;
 // Datos corporativos de la tienda.
 export const STORE = {
     name: 'SCOTT GAMES',
-    address: 'Puesto físico en Feria Grau, Lima - Perú',
+    address: 'Av. Miguel Grau 122, La Victoria 15033 (Feria Grau, Lima - Perú)',
     ruc: '', // Coloca aquí tu RUC real para mostrarlo en la boleta
 };
 
@@ -16,14 +16,16 @@ export const STORE = {
 // =====================================================================
 export const CONTACT = {
     email: 'scottgamestore@gmail.com',
-    // WhatsApp principal (ventas y checkout).
+    // WhatsApp principal (ventas y cotizaciones).
     whatsappSales: '+51 937 048 605',
     whatsappSalesDigits: '51937048605',
-    whatsappSalesLink: 'https://wa.me/message/TEBDYEKCXWVZF1',
-    // WhatsApp secundario (soporte).
+    whatsappSalesLink: 'https://wa.me/51937048605?text=Hola%2C%20quisiera%20comprar%20o%20cotizar%20un%20juego%20o%20consola%20en%20Scott%20Games.',
+    // WhatsApp secundario (soporte técnico).
     whatsappSupport: '+51 937 048 605',
     whatsappSupportDigits: '51937048605',
-    location: 'Puesto físico en Feria Grau, Lima - Perú',
+    whatsappSupportLink: 'https://wa.me/51937048605?text=Hola%2C%20necesito%20asistencia%20t%C3%A9cnica%20o%20soporte%20con%20un%20producto%20de%20Scott%20Games.',
+    location: 'Av. Miguel Grau 122, La Victoria 15033 (Feria Grau, Lima - Perú)',
+    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Miguel+Grau+122%2C+La+Victoria+15033%2C+Lima%2C+Peru',
 };
 
 // =====================================================================
