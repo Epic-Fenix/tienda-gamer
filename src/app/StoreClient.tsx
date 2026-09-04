@@ -65,6 +65,11 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState('');
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recientes');
+  const [visibleCount, setVisibleCount] = useState(16);
+
+  useEffect(() => {
+    setVisibleCount(16);
+  }, [categoryKey, searchTerm]);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
@@ -358,7 +363,7 @@ export default function Home() {
               </button>
             ))}
             {(genre || categoryKey !== 'todos' || searchTerm || minPrice || maxPrice || onlyInStock || sortBy !== 'recientes') && (
-              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#8a72b8] hover:text-white underline">
+              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); setVisibleCount(16); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#8a72b8] hover:text-white underline">
                 Limpiar
               </button>
             )}
@@ -395,11 +400,27 @@ export default function Home() {
           ) : filteredProducts.length === 0 ? (
             <p className="text-center text-[#8a72b8] py-10">No se encontraron productos con esos criterios.</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((item) => (
-                <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredProducts.slice(0, visibleCount).map((item) => (
+                  <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
+                ))}
+              </div>
+
+              {filteredProducts.length > visibleCount && (
+                <div className="mt-8 flex flex-col items-center justify-center gap-2">
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 16)}
+                    className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black text-zinc-950 bg-gradient-to-r from-[#fcd34d] via-[#fbbf24] to-[#f59e0b] hover:from-[#fbbf24] hover:to-[#fcd34d] shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-amber-300/40"
+                  >
+                    <span>🎮 Cargar más juegos (+16)</span>
+                  </button>
+                  <span className="text-xs font-semibold text-[#8a72b8]">
+                    Mostrando {Math.min(visibleCount, filteredProducts.length)} de {filteredProducts.length} juegos
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </section>
 
