@@ -297,33 +297,14 @@ export default function Home() {
             <div className="relative w-full flex overflow-hidden">
               <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
                 {slides.map((b, i) => (
-                  <div key={i} className={`relative min-w-full p-6 sm:p-10 md:p-12 lg:p-14 flex flex-col justify-center bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}>
-                    {/* Imagen temática renderizada a la derecha con recorte elegante y alto contraste */}
-                    {b.image_url && (
-                      <div className="absolute right-0 top-0 bottom-0 w-full sm:w-3/5 md:w-1/2 lg:w-3/5 overflow-hidden pointer-events-none">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={b.image_url}
-                          alt=""
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          className="w-full h-full object-cover object-center sm:object-right"
-                        />
-                        {/* Recorte y degradado lateral para fundirse suavemente con el fondo oscuro y texto */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#13072b] via-[#13072b]/60 to-transparent" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#13072b]/80 via-transparent to-transparent" />
-                      </div>
-                    )}
-                    {/* Overlay de refuerzo de contraste para lectura óptima del texto */}
-                    {b.image_url && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#0d0520]/95 via-[#13072b]/80 to-transparent sm:w-2/3 pointer-events-none" />
-                    )}
-
-                    <div className="relative z-10 max-w-xl md:max-w-2xl py-2">
+                  <div key={i} className={`relative min-w-full p-6 sm:p-10 md:p-12 lg:p-14 flex items-center justify-between bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}>
+                    {/* Contenido a la izquierda */}
+                    <div className="relative z-10 w-full md:w-1/2 py-2">
                       <span className="inline-block text-[11px] font-black px-2.5 py-1 rounded bg-[#fcd34d] text-zinc-950 mb-3 shadow-md">
                         {b.badge || `🔥 OFERTA · termina en ${mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}`}
                       </span>
                       <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white drop-shadow leading-tight tracking-tight">{b.title}</h2>
-                      <p className="text-white/90 text-sm sm:text-base md:text-lg mt-2.5 max-w-xl leading-relaxed">{b.subtitle}</p>
+                      <p className="text-white/90 text-sm sm:text-base md:text-lg mt-2.5 leading-relaxed">{b.subtitle}</p>
                       <div className="flex flex-wrap gap-2.5 mt-5">
                         {b.action === 'tradeIn' ? (
                           <button onClick={() => setTradeInOpen(true)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-teal-900/30">
@@ -351,6 +332,19 @@ export default function Home() {
                         )}
                       </div>
                     </div>
+
+                    {/* Imagen al lado derecho en escritorio */}
+                    {b.image_url && (
+                      <div className="hidden md:flex justify-end items-center w-1/2 relative z-10 pl-6">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={b.image_url}
+                          alt={b.title}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          className="max-h-72 w-auto object-contain rounded-2xl drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
