@@ -27,34 +27,54 @@ type Slide = {
   cta?: string;
   href?: string;
   targetSlug?: string | null;
-  action?: 'tradeIn' | 'catalog';
   badge?: string;
+  action?: 'trueque' | 'catalog';
+  primaryLabel?: string;
 };
 
 const DEFAULT_SLIDES: Slide[] = [
-  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5', badge: '🔥 NOVEDAD PS5' },
-  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Dragon_Ball_Super_anime_logo.png/640px-Dragon_Ball_Super_anime_logo.png', targetSlug: 'elden-ring-sote-ps5', badge: '⚡ RESERVA CON 20%' },
+  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5' },
+  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5' },
+  { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL },
+];
+
+// Slides promocionales fijos: siempre presentes en el carrusel (antes eran mini-banners).
+const PROMO_SLIDES: Slide[] = [
   {
-    title: '🔄 Plan Canje / Trueque Gamer', subtitle: 'Deja tu disco o consola usada como parte de pago y lleva lo último ahorrando.', gradient: 'from-[#1e1b4b] via-[#312e81] to-[#0d9488]', image_url: '/ginyu-change.png', cta: 'Cotizar mi Trueque', action: 'tradeIn', badge: '🔄 PLAN CANJE'
+    title: 'Plan Canje / Trueque Gamer',
+    subtitle: 'Deja tu disco o consola usada como parte de pago y llévate lo último ahorrando.',
+    gradient: 'from-[#4c1d95] via-[#7c3aed] to-[#2dd4bf]',
+    image_url: '/promo-trueque.png',
+    badge: '🔄 Plan Canje',
+    action: 'trueque',
+    primaryLabel: '🔄 Cotizar mi Trueque',
   },
-  { title: '📦 Envío Gratis a todo el Perú', subtitle: 'Por compras desde S/. 300 recibe tus títulos favoritos sin costo directo a tu puerta.', gradient: 'from-[#064e3b] via-[#047857] to-[#10b981]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Explorar Catálogo', action: 'catalog', badge: '🚚 ENVÍO GRATIS' },
-  { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía oficial de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL, badge: '💥 OFERTAS' },
+  {
+    title: 'Envío Gratis a todo el Perú',
+    subtitle: 'Por compras desde S/. 300. Agrega productos y te llega gratis a tu puerta.',
+    gradient: 'from-[#0e7490] via-[#0891b2] to-[#2dd4bf]',
+    image_url: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1190460/library_hero.jpg',
+    badge: '📦 Envío Gratis',
+    action: 'catalog',
+    primaryLabel: '🛒 Ver productos',
+  },
 ];
 
 interface CategoryDef { key: string; label: string; icon: string; match: (p: Product) => boolean; }
 const catText = (p: Product) => `${p.platform ?? ''} ${p.category} ${p.name}`.toLowerCase();
 const CATEGORIES: CategoryDef[] = [
   { key: 'todos', label: 'Todos', icon: '🎮', match: () => true },
-  { key: 'ps5', label: 'PS5', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS5') },
-  { key: 'ps4', label: 'PS4', icon: '🟦', match: (item) => Boolean(item.platform && item.platform.trim().toUpperCase() === 'PS4') },
-  { key: 'switch', label: 'Nintendo Switch', icon: '🔴', match: (p) => /switch|nintendo/.test(catText(p)) },
+  { key: 'ps5', label: 'PS5', icon: '🟦', match: (p) => (p.platform ?? '').trim().toUpperCase() === 'PS5' },
+  { key: 'ps4', label: 'PS4', icon: '🟦', match: (p) => (p.platform ?? '').trim().toUpperCase() === 'PS4' },
+  { key: 'switch', label: 'Switch', icon: '🟥', match: (p) => /switch|nintendo/.test(catText(p)) },
+  { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },
+  { key: 'coleccionables', label: 'Coleccionables', icon: '🧸', match: (p) => /anime|colec|figura|funko|peluche/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'joyas', label: 'Joyas Épicas', icon: '💎', match: (p) => /joya|épic|epic|oculta/.test(`${p.category} ${p.name}`.toLowerCase()) },
-  { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' || p.condition?.toLowerCase() === 'seminuevo' || p.condition === 'Seminuevo' },
-  { key: 'nuevos', label: 'Nuevos', icon: '✨', match: (p) => p.condition === 'Nuevo' || p.condition?.toLowerCase() === 'nuevo' },
+  { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
 ];
 
-const GENRES = ['Acción', 'Aventura', 'Carreras', 'Deportes'];
+const GENRES = ['Acción', 'Aventura', 'RPG', 'Carreras', 'Deportes', 'Indie'];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
@@ -70,11 +90,6 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState('');
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recientes');
-  const [visibleCount, setVisibleCount] = useState(16);
-
-  useEffect(() => {
-    setVisibleCount(16);
-  }, [categoryKey, searchTerm]);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
@@ -82,7 +97,7 @@ export default function Home() {
   const [tradeInOpen, setTradeInOpen] = useState(false);
 
   const [slide, setSlide] = useState(0);
-  const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
+  const [slides, setSlides] = useState<Slide[]>([...DEFAULT_SLIDES, ...PROMO_SLIDES]);
   // `now` arranca en 0 (valor estable en SSR y en el primer render del cliente)
   // para evitar el mismatch de hidratación (#418); se activa tras montar.
   const [now, setNow] = useState(0);
@@ -115,30 +130,20 @@ export default function Home() {
   const nextSlide = () => setSlide((s) => (s + 1) % slides.length);
   const prevSlide = () => setSlide((s) => (s - 1 + slides.length) % slides.length);
 
-  // CTA del hero: scroll suave al catálogo, abre QuickView o abre modal de canje.
-  const handleHeroCta = (targetSlugOrSlide?: string | null | Slide) => {
-    if (typeof targetSlugOrSlide === 'object' && targetSlugOrSlide !== null) {
-      if (targetSlugOrSlide.action === 'tradeIn') {
-        setTradeInOpen(true);
-        return;
-      }
-      if (targetSlugOrSlide.action === 'catalog') {
-        document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-      const slug = targetSlugOrSlide.targetSlug;
-      document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
-      if (slug) {
-        const prod = products.find((p) => p.slug === slug);
-        if (prod) setTimeout(() => openQuickView(prod), 500);
-      }
-      return;
-    }
+  // CTA del hero: scroll suave al catálogo y abre el QuickView del producto ligado.
+  const handleHeroCta = (targetSlug?: string | null) => {
     document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
-    if (targetSlugOrSlide) {
-      const prod = products.find((p) => p.slug === targetSlugOrSlide);
+    if (targetSlug) {
+      const prod = products.find((p) => p.slug === targetSlug);
       if (prod) setTimeout(() => openQuickView(prod), 500);
     }
+  };
+
+  // Acción del botón principal del hero según el tipo de slide.
+  const heroPrimary = (b: Slide) => {
+    if (b.action === 'trueque') { setTradeInOpen(true); return; }
+    if (b.action === 'catalog') { handleHeroCta(undefined); return; }
+    handleHeroCta(b.targetSlug);
   };
 
   // Abre la ficha rápida y refleja el producto en la URL (?p=slug) para compartir.
@@ -187,9 +192,9 @@ export default function Home() {
     const loadBanners = async () => {
       const { data } = await supabase.from('banners').select('*').eq('is_active', true).order('order_index', { ascending: true });
       if (data && data.length > 0) {
-        setSlides((data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, cta: b.button_text ?? undefined, href: b.link_url ?? undefined, targetSlug: b.target_product_slug ?? undefined })));
+        setSlides([...(data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, cta: b.button_text ?? undefined, href: b.link_url ?? undefined, targetSlug: b.target_product_slug ?? undefined })), ...PROMO_SLIDES]);
       } else {
-        setSlides(DEFAULT_SLIDES);
+        setSlides([...DEFAULT_SLIDES, ...PROMO_SLIDES]);
       }
       setSlide(0);
     };
@@ -249,9 +254,19 @@ export default function Home() {
   const current = slides[slide] ?? slides[0];
 
   return (
-    <main className="min-h-screen bg-[#13072b] text-slate-100">
+    <main className="min-h-screen relative text-slate-100">
+      <div className="fixed inset-0 -z-50 bg-[#0b0a16]">
+        {/* Wallpaper con opacidad baja */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-fixed opacity-15 pointer-events-none"
+          style={{ backgroundImage: "url('https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2651280/library_hero.jpg')" }}
+        />
+        {/* Gradiente radial gamer para ambientar */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f0c20]/80 via-[#0b0a16]/95 to-[#07060d] pointer-events-none" />
+      </div>
+
       {/* TopBar */}
-      <div className="bg-[#0d0520] border-b border-[#3e1b75]/60 text-[11px]">
+      <div className="bg-[#0d0520]/80 backdrop-blur-md border-b border-[#3e1b75]/60 text-[11px]">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 text-[#2dd4bf] font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" /> Tienda física Lima: Stock en Vivo
@@ -280,7 +295,7 @@ export default function Home() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Busca juegos, consolas, accesorios..."
-              className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
+              className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-16 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
             />
           </div>
           <button onClick={openCart} className="relative shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-zinc-950 bg-[#fcd34d] hover:bg-[#fbbf24] transition">
@@ -292,86 +307,56 @@ export default function Home() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Gran Banner Promocional – Imponente a ancho completo */}
-        <section className="w-full">
-          <div className="relative overflow-hidden rounded-3xl shadow-2xl shadow-purple-950/50">
-            {/* Carrusel */}
-            <div className="relative w-full overflow-hidden">
-              <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
-                {slides.map((b, i) => (
-                  <div
-                    key={i}
-                    className={`relative min-w-full min-h-[380px] md:min-h-[420px] flex items-center bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}
-                  >
-                    {/* Overlay sutil para legibilidad */}
-                    <div className="absolute inset-0 bg-black/20 z-0" />
-
-                    <div className="relative z-10 w-full flex items-center p-8 md:p-12 lg:p-14">
-                      {/* Columna Izquierda – Texto y Acciones (60%) */}
-                      <div className="w-full md:w-3/5 flex flex-col justify-center">
-                        <span className="inline-block w-fit text-[11px] font-black px-3 py-1 rounded-full bg-[#fcd34d] text-zinc-950 mb-4 shadow-md uppercase tracking-wider">
-                          {b.badge || `🔥 OFERTA · termina en ${mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}`}
-                        </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
-                          {b.title}
-                        </h2>
-                        <p className="text-gray-200 text-base md:text-lg mt-3 max-w-xl leading-relaxed">
-                          {b.subtitle}
-                        </p>
-                        <div className="flex flex-wrap gap-3 mt-6">
-                          {b.action === 'tradeIn' ? (
-                            <button onClick={() => setTradeInOpen(true)} className="px-6 py-3 rounded-xl text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-teal-900/40">
-                              🔄 {b.cta || 'Cotizar mi Trueque'}
-                            </button>
-                          ) : b.action === 'catalog' ? (
-                            <a href="#catalogo" className="px-6 py-3 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-yellow-900/30">
-                              📦 {b.cta || 'Explorar Catálogo'}
-                            </a>
-                          ) : (
-                            <>
-                              <button onClick={() => handleHeroCta(b)} className="px-6 py-3 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-yellow-900/30">
-                                Reservar Preventa
-                              </button>
-                              {b.href ? (
-                                <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur transition-all border border-white/20">
-                                  {b.cta || 'Ver más'}
-                                </a>
-                              ) : (
-                                <button onClick={() => handleHeroCta(b)} className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur transition-all border border-white/20">
-                                  Ver Ofertas
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Columna Derecha – Imagen integrada al Hero */}
-                      {b.image_url && (
-                        <div className="hidden md:flex flex-1 items-center justify-end h-full z-10 pr-4">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={b.image_url}
-                            alt={b.title}
-                            className="max-h-[320px] w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]"
-                          />
-                        </div>
-                      )}
+        {/* Hero grid */}
+        <section>
+          {/* Banner principal (carrusel) */}
+          <div className="relative overflow-hidden rounded-3xl border border-[#3e1b75] flex shadow-2xl">
+            <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
+              {slides.map((b, i) => (
+                <div
+                  key={i}
+                  className={`min-w-full min-h-[380px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
+                >
+                  {/* Imagen a pantalla completa: cubre TODO el banner */}
+                  {b.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={b.image_url}
+                      alt={b.title}
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                    />
+                  )}
+                  {/* Degradé para legibilidad del texto (oscuro a la izquierda, revela la imagen a la derecha) */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
+                  {/* Contenido sobre la imagen */}
+                  <div className="relative z-10 w-full md:max-w-xl p-8 md:p-12 flex flex-col justify-center items-start">
+                    <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider bg-black/40 text-amber-300 rounded-full border border-amber-300/30 mb-4">
+                      {b.badge || (mounted ? `🔥 Oferta · termina en ${pad(cH)}:${pad(cM)}:${pad(cS)}` : '🔥 Oferta')}
+                    </span>
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
+                    <p className="mt-3 text-base md:text-lg text-gray-200 max-w-lg drop-shadow">{b.subtitle}</p>
+                    <div className="flex flex-wrap gap-3 mt-6">
+                      <button onClick={() => heroPrimary(b)} className="px-5 py-2.5 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 transition">{b.primaryLabel || 'Reservar Preventa'}</button>
+                      {!b.action && (b.href ? (
+                        <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
+                      ) : (
+                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">Ver Ofertas</button>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Controles del carrusel */}
-              <button onClick={prevSlide} aria-label="Anterior" className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center z-20 transition text-xl">‹</button>
-              <button onClick={nextSlide} aria-label="Siguiente" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center z-20 transition text-xl">›</button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                {slides.map((_, i) => (
-                  <button key={i} onClick={() => setSlide(i)} aria-label={`Banner ${i + 1}`} className={`h-2.5 rounded-full transition-all duration-300 ${i === slide ? 'w-8 bg-[#fcd34d] shadow-md shadow-yellow-500/50' : 'w-2.5 bg-white/40 hover:bg-white/60'}`} />
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={prevSlide} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white z-10">‹</button>
+            <button onClick={nextSlide} aria-label="Siguiente" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white z-10">›</button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {slides.map((_, i) => (
+                <button key={i} onClick={() => setSlide(i)} aria-label={`Banner ${i + 1}`} className={`h-2 rounded-full transition-all ${i === slide ? 'w-5 bg-[#fcd34d]' : 'w-2 bg-white/40'}`} />
+              ))}
             </div>
           </div>
+
         </section>
 
         {/* Cinta de categorías */}
@@ -403,7 +388,7 @@ export default function Home() {
               </button>
             ))}
             {(genre || categoryKey !== 'todos' || searchTerm || minPrice || maxPrice || onlyInStock || sortBy !== 'recientes') && (
-              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); setVisibleCount(16); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#8a72b8] hover:text-white underline">
+              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#8a72b8] hover:text-white underline">
                 Limpiar
               </button>
             )}
@@ -440,27 +425,11 @@ export default function Home() {
           ) : filteredProducts.length === 0 ? (
             <p className="text-center text-[#8a72b8] py-10">No se encontraron productos con esos criterios.</p>
           ) : (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredProducts.slice(0, visibleCount).map((item) => (
-                  <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
-                ))}
-              </div>
-
-              {filteredProducts.length > visibleCount && (
-                <div className="mt-8 flex flex-col items-center justify-center gap-2">
-                  <button
-                    onClick={() => setVisibleCount((prev) => prev + 16)}
-                    className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black text-zinc-950 bg-gradient-to-r from-[#fcd34d] via-[#fbbf24] to-[#f59e0b] hover:from-[#fbbf24] hover:to-[#fcd34d] shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-amber-300/40"
-                  >
-                    <span>🎮 Cargar más juegos (+16)</span>
-                  </button>
-                  <span className="text-xs font-semibold text-[#8a72b8]">
-                    Mostrando {Math.min(visibleCount, filteredProducts.length)} de {filteredProducts.length} juegos
-                  </span>
-                </div>
-              )}
-            </>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredProducts.map((item) => (
+                <ProductCard key={item.id} product={item} onReserve={setSelectedProduct} onBackorder={setBackorderProduct} onQuickView={openQuickView} />
+              ))}
+            </div>
           )}
         </section>
 
@@ -479,52 +448,34 @@ export default function Home() {
 
           {/* Canales oficiales de contacto */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-            <a
-              href="https://wa.me/51937048605?text=Hola%2C%20quisiera%20comprar%20o%20cotizar%20un%20juego%20o%20consola%20en%20Scott%20Games."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 hover:bg-[#25d366]/10 transition group"
-            >
-              <span className="text-lg group-hover:scale-110 transition">🟢</span>
+            <a href={CONTACT.whatsappSalesLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 transition">
+              <span className="text-lg">🟢</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold group-hover:text-[#25d366] transition">WhatsApp Ventas</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">WhatsApp Ventas</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.whatsappSales}</span>
               </span>
             </a>
-            <a
-              href="https://wa.me/51937048605?text=Hola%2C%20necesito%20asistencia%20t%C3%A9cnica%20o%20soporte%20con%20un%20producto%20de%20Scott%20Games."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 hover:bg-[#25d366]/10 transition group"
-            >
-              <span className="text-lg group-hover:scale-110 transition">💬</span>
+            <a href={`https://wa.me/${CONTACT.whatsappSupportDigits}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 transition">
+              <span className="text-lg">💬</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold group-hover:text-[#25d366] transition">WhatsApp Soporte Técnico</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">WhatsApp Soporte</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.whatsappSupport}</span>
               </span>
             </a>
-            <a
-              href={`mailto:${CONTACT.email}`}
-              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#8b5cf6]/60 hover:bg-[#8b5cf6]/10 transition group"
-            >
-              <span className="text-lg group-hover:scale-110 transition">✉️</span>
+            <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#8b5cf6]/60 transition">
+              <span className="text-lg">✉️</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold group-hover:text-[#c4b5fd] transition">Correo</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">Correo</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.email}</span>
               </span>
             </a>
-            <a
-              href="https://www.google.com/maps/search/?api=1&query=Av.+Miguel+Grau+122%2C+La+Victoria+15033%2C+Lima%2C+Peru"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#fcd34d]/60 hover:bg-[#fcd34d]/10 transition group"
-            >
-              <span className="text-lg group-hover:scale-110 transition">📍</span>
+            <div className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3">
+              <span className="text-lg">📍</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold group-hover:text-[#fcd34d] transition">Ubicación · Ver en Maps ↗</span>
-                <span className="block text-xs font-bold text-white leading-tight">Av. Miguel Grau 122, La Victoria 15033 (Feria Grau, Lima - Perú)</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">Ubicación</span>
+                <span className="block text-sm font-bold text-white">{CONTACT.location}</span>
               </span>
-            </a>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
