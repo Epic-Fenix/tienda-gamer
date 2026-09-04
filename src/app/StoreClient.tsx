@@ -346,15 +346,14 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Columna Derecha – Imagen */}
+                      {/* Columna Derecha - Imagen */}
                       {b.image_url && (
-                        <div className="hidden md:flex flex-1 justify-end items-center h-full pr-6 z-10">
+                        <div className="flex flex-1 justify-center md:justify-end items-center h-full pr-0 md:pr-6 z-10">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={b.image_url}
                             alt={b.title}
-                            onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
-                            className="max-h-[340px] w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300"
+                            className="max-h-[260px] md:max-h-[340px] w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]"
                           />
                         </div>
                       )}
