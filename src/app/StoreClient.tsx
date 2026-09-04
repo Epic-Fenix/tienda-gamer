@@ -290,71 +290,84 @@ export default function Home() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Gran Banner Promocional (ancho completo) */}
+        {/* Gran Banner Promocional – Imponente a ancho completo */}
         <section className="w-full">
-          <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#3e1b75] bg-[#13072b] min-h-[340px] md:min-h-[390px] flex flex-col justify-center shadow-2xl shadow-purple-950/40">
+          <div className="relative overflow-hidden rounded-3xl shadow-2xl shadow-purple-950/50">
             {/* Carrusel */}
-            <div className="relative w-full flex overflow-hidden">
+            <div className="relative w-full overflow-hidden">
               <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
                 {slides.map((b, i) => (
-                  <div key={i} className={`relative min-w-full p-6 sm:p-10 md:p-12 lg:p-14 flex items-center justify-between bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}>
-                    {/* Contenido a la izquierda */}
-                    <div className="relative z-10 w-full md:w-1/2 py-2">
-                      <span className="inline-block text-[11px] font-black px-2.5 py-1 rounded bg-[#fcd34d] text-zinc-950 mb-3 shadow-md">
-                        {b.badge || `🔥 OFERTA · termina en ${mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}`}
-                      </span>
-                      <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white drop-shadow leading-tight tracking-tight">{b.title}</h2>
-                      <p className="text-white/90 text-sm sm:text-base md:text-lg mt-2.5 leading-relaxed">{b.subtitle}</p>
-                      <div className="flex flex-wrap gap-2.5 mt-5">
-                        {b.action === 'tradeIn' ? (
-                          <button onClick={() => setTradeInOpen(true)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-teal-900/30">
-                            🔄 {b.cta || 'Cotizar mi Trueque'}
-                          </button>
-                        ) : b.action === 'catalog' ? (
-                          <a href="#catalogo" className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md">
-                            📦 {b.cta || 'Explorar Catálogo'}
-                          </a>
-                        ) : (
-                          <>
-                            <button onClick={() => handleHeroCta(b)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md">
-                              Reservar Preventa
-                            </button>
-                            {b.href ? (
-                              <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#8b5cf6]/80 hover:bg-[#8b5cf6] transition">
-                                {b.cta || 'Ver más'}
-                              </a>
-                            ) : (
-                              <button onClick={() => handleHeroCta(b)} className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#8b5cf6]/80 hover:bg-[#8b5cf6] transition">
-                                Ver Ofertas
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  <div
+                    key={i}
+                    className={`relative min-w-full min-h-[380px] md:min-h-[420px] flex items-center bg-gradient-to-br ${b.gradient || 'from-[#3e1b75] to-[#6d28d9]'}`}
+                  >
+                    {/* Overlay sutil para legibilidad */}
+                    <div className="absolute inset-0 bg-black/20 z-0" />
 
-                    {/* Imagen al lado derecho en escritorio */}
-                    {b.image_url && (
-                      <div className="hidden md:flex justify-end items-center w-1/2 relative z-10 pl-6">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={b.image_url}
-                          alt={b.title}
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          className="max-h-72 w-auto object-contain rounded-2xl drop-shadow-2xl hover:scale-105 transition-transform duration-300"
-                        />
+                    <div className="relative z-10 w-full flex items-center p-8 md:p-12 lg:p-14">
+                      {/* Columna Izquierda – Texto y Acciones (60%) */}
+                      <div className="w-full md:w-3/5 flex flex-col justify-center">
+                        <span className="inline-block w-fit text-[11px] font-black px-3 py-1 rounded-full bg-[#fcd34d] text-zinc-950 mb-4 shadow-md uppercase tracking-wider">
+                          {b.badge || `🔥 OFERTA · termina en ${mounted ? `${pad(cH)}:${pad(cM)}:${pad(cS)}` : '--:--:--'}`}
+                        </span>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
+                          {b.title}
+                        </h2>
+                        <p className="text-gray-200 text-base md:text-lg mt-3 max-w-xl leading-relaxed">
+                          {b.subtitle}
+                        </p>
+                        <div className="flex flex-wrap gap-3 mt-6">
+                          {b.action === 'tradeIn' ? (
+                            <button onClick={() => setTradeInOpen(true)} className="px-6 py-3 rounded-xl text-sm font-black bg-[#2dd4bf] text-zinc-950 hover:bg-[#14b8a6] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-teal-900/40">
+                              🔄 {b.cta || 'Cotizar mi Trueque'}
+                            </button>
+                          ) : b.action === 'catalog' ? (
+                            <a href="#catalogo" className="px-6 py-3 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-yellow-900/30">
+                              📦 {b.cta || 'Explorar Catálogo'}
+                            </a>
+                          ) : (
+                            <>
+                              <button onClick={() => handleHeroCta(b)} className="px-6 py-3 rounded-xl text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-yellow-900/30">
+                                Reservar Preventa
+                              </button>
+                              {b.href ? (
+                                <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur transition-all border border-white/20">
+                                  {b.cta || 'Ver más'}
+                                </a>
+                              ) : (
+                                <button onClick={() => handleHeroCta(b)} className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur transition-all border border-white/20">
+                                  Ver Ofertas
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    )}
+
+                      {/* Columna Derecha – Imagen (40%) */}
+                      {b.image_url && (
+                        <div className="hidden md:flex w-2/5 justify-center items-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={b.image_url}
+                            alt={b.title}
+                            onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
+                            className="max-h-80 w-auto object-contain rounded-2xl hover:scale-105 transition-transform duration-500"
+                            style={{ filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.6))' }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
 
               {/* Controles del carrusel */}
-              <button onClick={prevSlide} aria-label="Anterior" className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur text-white flex items-center justify-center z-10 transition text-lg">‹</button>
-              <button onClick={nextSlide} aria-label="Siguiente" className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur text-white flex items-center justify-center z-10 transition text-lg">›</button>
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              <button onClick={prevSlide} aria-label="Anterior" className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center z-20 transition text-xl">‹</button>
+              <button onClick={nextSlide} aria-label="Siguiente" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center z-20 transition text-xl">›</button>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                 {slides.map((_, i) => (
-                  <button key={i} onClick={() => setSlide(i)} aria-label={`Banner ${i + 1}`} className={`h-2 rounded-full transition-all ${i === slide ? 'w-6 bg-[#fcd34d]' : 'w-2 bg-white/40'}`} />
+                  <button key={i} onClick={() => setSlide(i)} aria-label={`Banner ${i + 1}`} className={`h-2.5 rounded-full transition-all duration-300 ${i === slide ? 'w-8 bg-[#fcd34d] shadow-md shadow-yellow-500/50' : 'w-2.5 bg-white/40 hover:bg-white/60'}`} />
                 ))}
               </div>
             </div>
