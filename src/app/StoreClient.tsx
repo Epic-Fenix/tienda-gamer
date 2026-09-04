@@ -44,7 +44,7 @@ const PROMO_SLIDES: Slide[] = [
     title: 'Plan Canje / Trueque Gamer',
     subtitle: 'Deja tu disco o consola usada como parte de pago y llévate lo último ahorrando.',
     gradient: 'from-[#4c1d95] via-[#7c3aed] to-[#2dd4bf]',
-    image_url: '/promo-trueque.png',
+    image_url: '/promo-trueque.png?v=2',
     badge: '🔄 Plan Canje',
     action: 'trueque',
     primaryLabel: '🔄 Cotizar mi Trueque',
@@ -53,7 +53,7 @@ const PROMO_SLIDES: Slide[] = [
     title: 'Envío Gratis a todo el Perú',
     subtitle: 'Por compras desde S/. 300. Agrega productos y te llega gratis a tu puerta.',
     gradient: 'from-[#0e7490] via-[#0891b2] to-[#2dd4bf]',
-    image_url: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1190460/library_hero.jpg',
+    image_url: '/promo-envio.png?v=2',
     badge: '📦 Envío Gratis',
     action: 'catalog',
     primaryLabel: '🛒 Ver productos',
@@ -254,19 +254,9 @@ export default function Home() {
   const current = slides[slide] ?? slides[0];
 
   return (
-    <main className="min-h-screen relative text-slate-100">
-      <div className="fixed inset-0 -z-50 bg-[#0b0a16]">
-        {/* Wallpaper con opacidad baja */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-fixed opacity-15 pointer-events-none"
-          style={{ backgroundImage: "url('https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2651280/library_hero.jpg')" }}
-        />
-        {/* Gradiente radial gamer para ambientar */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0f0c20]/80 via-[#0b0a16]/95 to-[#07060d] pointer-events-none" />
-      </div>
-
+    <main className="min-h-screen bg-[#13072b] text-slate-100">
       {/* TopBar */}
-      <div className="bg-[#0d0520]/80 backdrop-blur-md border-b border-[#3e1b75]/60 text-[11px]">
+      <div className="bg-[#0d0520] border-b border-[#3e1b75]/60 text-[11px]">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 text-[#2dd4bf] font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" /> Tienda física Lima: Stock en Vivo
