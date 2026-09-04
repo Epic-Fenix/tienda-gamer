@@ -34,9 +34,11 @@ type Slide = {
 const DEFAULT_SLIDES: Slide[] = [
   { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5', badge: '🔥 NOVEDAD PS5' },
   { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5', badge: '⚡ RESERVA CON 20%' },
-  { title: '🔄 Plan Canje / Trueque Gamer', subtitle: 'Deja tu disco o consola usada como parte de pago y lleva lo último ahorrando.', gradient: 'from-[#1e1b4b] via-[#312e81] to-[#0d9488]', image_url: '/ginyu-change.jpg', cta: 'Cotizar mi Trueque', action: 'tradeIn', badge: '🔄 PLAN CANJE' },
+  {
+    title: '🔄 Plan Canje / Trueque Gamer', subtitle: 'Deja tu disco o consola usada como parte de pago y lleva lo último ahorrando.', gradient: 'from-[#1e1b4b] via-[#312e81] to-[#0d9488]', image_url: 'https://i.ibb.co/68v8pQp/ginyu-change.png', cta: 'Cotizar mi Trueque', action: 'tradeIn', badge: '🔄 PLAN CANJE'
+  },
   { title: '📦 Envío Gratis a todo el Perú', subtitle: 'Por compras desde S/. 300 recibe tus títulos favoritos sin costo directo a tu puerta.', gradient: 'from-[#064e3b] via-[#047857] to-[#10b981]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Explorar Catálogo', action: 'catalog', badge: '🚚 ENVÍO GRATIS' },
-  { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía oficial de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL, badge: '💥 OFERTAS' },
+  { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía oficial de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL, badge: '💥 OFERTAS' },
 ];
 
 interface CategoryDef { key: string; label: string; icon: string; match: (p: Product) => boolean; }
@@ -344,16 +346,15 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Columna Derecha – Imagen (40%) */}
+                      {/* Columna Derecha – Imagen */}
                       {b.image_url && (
-                        <div className="hidden md:flex w-2/5 justify-center items-center">
+                        <div className="hidden md:flex flex-1 justify-end items-center h-full pr-6 z-10">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={b.image_url}
                             alt={b.title}
                             onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
-                            className="max-h-80 w-auto object-contain rounded-2xl hover:scale-105 transition-transform duration-500"
-                            style={{ filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.6))' }}
+                            className="max-h-[340px] w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                       )}
