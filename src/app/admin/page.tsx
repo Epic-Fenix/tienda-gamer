@@ -194,17 +194,30 @@ export default function AdminDashboard() {
         };
     }, [authorized]);
 
+    // Ajuste puro de stock (ingreso +1 / merma -1). NO cuenta como venta.
     const handleUpdateStock = async (id: string, currentStock: number, delta: number) => {
         const nextStock = Math.max(0, currentStock + delta);
-        // delta < 0 = venta: acumula unidades vendidas (para ganancia realizada).
-        const soldInc = delta < 0 ? -delta : 0;
-        setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: nextStock, units_sold: (Number(p.units_sold) || 0) + soldInc } : p)));
-        const update: { stock: number; units_sold?: number } = { stock: nextStock };
-        if (soldInc > 0) {
-            const current = products.find((p) => p.id === id);
-            update.units_sold = (Number(current?.units_sold) || 0) + soldInc;
-        }
-        await supabase.from('products').update(update).eq('id', id);
+        setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: nextStock } : p)));
+        await supabase.from('products').update({ stock: nextStock }).eq('id', id);
+    };
+
+    // Registrar venta: baja 1 de stock y suma 1 a unidades vendidas (ganancia realizada).
+    const handleSell = async (item: Product) => {
+        if ((Number(item.stock) || 0) <= 0) { alert('Sin stock: no puedes registrar la venta.'); return; }
+        const nextStock = item.stock - 1;
+        const nextSold = (Number(item.units_sold) || 0) + 1;
+        setProducts((prev) => prev.map((p) => (p.id === item.id ? { ...p, stock: nextStock, units_sold: nextSold } : p)));
+        await supabase.from('products').update({ stock: nextStock, units_sold: nextSold }).eq('id', item.id);
+    };
+
+    // Deshacer última venta: resta 1 a vendidos y devuelve 1 al stock (corrección).
+    const handleUndoSell = async (item: Product) => {
+        const sold = Number(item.units_sold) || 0;
+        if (sold <= 0) return;
+        const nextSold = sold - 1;
+        const nextStock = (Number(item.stock) || 0) + 1;
+        setProducts((prev) => prev.map((p) => (p.id === item.id ? { ...p, stock: nextStock, units_sold: nextSold } : p)));
+        await supabase.from('products').update({ stock: nextStock, units_sold: nextSold }).eq('id', item.id);
     };
 
     // Cambia el estado de una orden (se refleja en vivo en el rastreador del cliente).
@@ -675,6 +688,12 @@ export default function AdminDashboard() {
                             </select>
                         </div>
                     </div>
+                    {/* Leyenda de acciones (para que el dueño no se confunda) */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-[11px] text-slate-400">
+                        <span><span className="text-emerald-400 font-bold">🛒 Vender</span> = registra venta (baja stock + suma ganancia)</span>
+                        <span><span className="text-indigo-300 font-bold">+1</span> = ingresar stock · <span className="text-slate-300 font-bold">−1</span> = merma/ajuste (sin venta)</span>
+                        <span><span className="text-amber-300 font-bold">↩</span> = deshacer venta</span>
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
                             <thead className="text-slate-500 border-b border-slate-800 uppercase">
@@ -687,7 +706,7 @@ export default function AdminDashboard() {
                                     <th className="pb-3 text-right">Margen</th>
                                     <th className="pb-3 text-center">Stock</th>
                                     <th className="pb-3 text-center">Vendidos</th>
-                                    <th className="pb-3 text-center">Ajuste</th>
+                                    <th className="pb-3 text-center">Venta / Stock</th>
                                     <th className="pb-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
@@ -732,16 +751,27 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="py-3 text-center">
                                             {(Number(item.units_sold) || 0) > 0 ? (
-                                                <span className="px-2.5 py-1 rounded-full font-bold bg-green-500/10 text-green-400">
-                                                    ✓ {item.units_sold} vend.
-                                                </span>
+                                                <div className="inline-flex flex-col items-center gap-0.5">
+                                                    <span className="px-2.5 py-1 rounded-full font-bold bg-green-500/10 text-green-400">
+                                                        ✓ {item.units_sold} vend.
+                                                    </span>
+                                                    <span className="text-[10px] font-semibold text-emerald-500">
+                                                        +S/. {(((Number(item.price) || 0) - (Number(item.cost_price) || 0)) * (Number(item.units_sold) || 0)).toFixed(2)}
+                                                    </span>
+                                                </div>
                                             ) : (
                                                 <span className="text-slate-600">—</span>
                                             )}
                                         </td>
-                                        <td className="py-3 text-center space-x-1 whitespace-nowrap">
-                                            <button onClick={() => handleUpdateStock(item.id, item.stock, -1)} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold">-1</button>
-                                            <button onClick={() => handleUpdateStock(item.id, item.stock, 1)} className="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 rounded font-bold">+1</button>
+                                        <td className="py-3 text-center whitespace-nowrap">
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <button onClick={() => handleSell(item)} disabled={item.stock <= 0} title="Registrar venta: baja 1 de stock y suma ganancia" className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow-sm disabled:opacity-30 disabled:cursor-not-allowed">🛒 Vender</button>
+                                                <button onClick={() => handleUpdateStock(item.id, item.stock, 1)} title="Ingresar stock (+1), sin registrar venta" className="w-7 h-7 flex items-center justify-center bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded font-bold">+1</button>
+                                                <button onClick={() => handleUpdateStock(item.id, item.stock, -1)} disabled={item.stock <= 0} title="Quitar stock (−1) por merma o ajuste, sin venta" className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold disabled:opacity-30 disabled:cursor-not-allowed">−1</button>
+                                                {(Number(item.units_sold) || 0) > 0 && (
+                                                    <button onClick={() => handleUndoSell(item)} title="Deshacer última venta: corrige y devuelve el stock" className="w-7 h-7 flex items-center justify-center bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded font-bold">↩</button>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="py-3 text-right space-x-1 whitespace-nowrap">
                                             <button onClick={() => openEditModal(item)} className="px-2.5 py-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white rounded font-bold transition">Editar</button>
