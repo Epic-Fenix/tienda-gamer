@@ -28,7 +28,7 @@ type Slide = {
   href?: string;
   targetSlug?: string | null;
   badge?: string;
-  action?: 'trueque' | 'catalog';
+  action?: 'trueque' | 'catalog' | 'buscar';
   primaryLabel?: string;
 };
 
@@ -40,6 +40,14 @@ const DEFAULT_SLIDES: Slide[] = [
 
 // Slides promocionales fijos: siempre presentes en el carrusel (antes eran mini-banners).
 const PROMO_SLIDES: Slide[] = [
+  {
+    title: '¿Buscas un juego? Nosotros lo buscamos por ti',
+    subtitle: 'Dinos qué título quieres y lo conseguimos. Escríbenos y te lo traemos.',
+    gradient: 'from-[#4c1d95] via-[#6d28d9] to-[#2563eb]',
+    badge: '🔎 Te lo buscamos',
+    action: 'buscar',
+    primaryLabel: '🔎 Buscar mi juego',
+  },
   {
     title: 'Plan Canje / Trueque Gamer',
     subtitle: 'Deja tu disco o consola usada como parte de pago y llévate lo último ahorrando.',
@@ -66,6 +74,8 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'todos', label: 'Todos', icon: '🎮', match: () => true },
   { key: 'ps5', label: 'PS5', icon: '🟦', match: (p) => (p.platform ?? '').trim().toUpperCase() === 'PS5' },
   { key: 'ps4', label: 'PS4', icon: '🟦', match: (p) => (p.platform ?? '').trim().toUpperCase() === 'PS4' },
+  { key: 'ps3', label: 'PS3', icon: '🟦', match: (p) => (p.platform ?? '').trim().toUpperCase() === 'PS3' },
+  { key: 'nuevos', label: 'Nuevos', icon: '✨', match: (p) => p.condition !== 'segunda_mano' },
   { key: 'switch', label: 'Switch', icon: '🟥', match: (p) => /switch|nintendo/.test(catText(p)) },
   { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },
@@ -74,7 +84,7 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
 ];
 
-const GENRES = ['Acción', 'Aventura', 'RPG', 'Carreras', 'Deportes', 'Indie'];
+const GENRES = ['Acción', 'Aventura', 'Shooter', 'Deportes', 'Carreras', 'Lucha', 'Terror', 'Estrategia', 'Familiar'];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
@@ -144,6 +154,11 @@ export default function Home() {
   // Acción del botón principal del hero según el tipo de slide.
   const heroPrimary = (b: Slide) => {
     if (b.action === 'trueque') { setTradeInOpen(true); return; }
+    if (b.action === 'buscar') {
+      const msg = encodeURIComponent('¡Hola SCOTT GAMES! Estoy buscando un juego que no encuentro en la tienda. ¿Me ayudan a conseguirlo? El juego es: ');
+      window.open(`https://wa.me/${CONTACT.whatsappSalesDigits}?text=${msg}`, '_blank', 'noopener');
+      return;
+    }
     if (b.action === 'catalog') { handleHeroCta(undefined); return; }
     handleHeroCta(b.targetSlug);
   };
@@ -240,7 +255,7 @@ export default function Home() {
     const result = products.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(q) || (item.description ?? '').toLowerCase().includes(q);
       const matchesCat = activeCat.match(item);
-      const matchesGenre = g === '' || `${item.name} ${item.description ?? ''} ${item.category}`.toLowerCase().includes(g);
+      const matchesGenre = g === '' || (item.genre ?? '').toLowerCase().includes(g) || `${item.name} ${item.description ?? ''} ${item.category}`.toLowerCase().includes(g);
       const matchesMin = min === null || item.price >= min;
       const matchesMax = max === null || item.price <= max;
       const matchesStock = !onlyInStock || item.stock > 0;

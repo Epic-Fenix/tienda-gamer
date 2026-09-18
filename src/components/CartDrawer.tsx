@@ -169,11 +169,12 @@ export default function CartDrawer() {
             return;
         }
 
-        // Descuenta stock de cada producto (lee el valor actual antes de restar).
+        // Descuenta stock y acumula unidades vendidas (lee valores actuales antes).
         for (const it of items) {
-            const { data } = await supabase.from('products').select('stock').eq('id', it.product_id).single();
+            const { data } = await supabase.from('products').select('stock, units_sold').eq('id', it.product_id).single();
             const current = Number(data?.stock) || 0;
-            await supabase.from('products').update({ stock: Math.max(0, current - it.quantity) }).eq('id', it.product_id);
+            const sold = Number(data?.units_sold) || 0;
+            await supabase.from('products').update({ stock: Math.max(0, current - it.quantity), units_sold: sold + it.quantity }).eq('id', it.product_id);
         }
 
         // Registra el uso del cupón (incrementa uses_count).

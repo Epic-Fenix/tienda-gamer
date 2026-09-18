@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '' });
+    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '', genre: '', discs: '' });
 
     // Etiqueta de envío
     const [packingOrder, setPackingOrder] = useState<Order | null>(null);
@@ -68,6 +68,14 @@ export default function AdminDashboard() {
 
     // Pestaña activa del panel.
     const [tabActive, setTabActive] = useState<AdminTab>('inventario');
+
+    // Orden de la tabla de inventario.
+    const [invSort, setInvSort] = useState<'recientes' | 'stock-desc' | 'stock-asc' | 'nombre' | 'precio-desc' | 'precio-asc' | 'vendidos-desc'>('recientes');
+    // Búsqueda, filtro de estado y paginación de la tabla de inventario.
+    const [invSearch, setInvSearch] = useState('');
+    const [invCond, setInvCond] = useState<'todos' | 'nuevo' | 'segunda_mano'>('todos');
+    const [invPage, setInvPage] = useState(1);
+    const INV_PAGE_SIZE = 10;
 
     // Valida la sesión activa de Supabase Auth al montar y escucha cambios.
     useEffect(() => {
@@ -188,8 +196,15 @@ export default function AdminDashboard() {
 
     const handleUpdateStock = async (id: string, currentStock: number, delta: number) => {
         const nextStock = Math.max(0, currentStock + delta);
-        setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: nextStock } : p)));
-        await supabase.from('products').update({ stock: nextStock }).eq('id', id);
+        // delta < 0 = venta: acumula unidades vendidas (para ganancia realizada).
+        const soldInc = delta < 0 ? -delta : 0;
+        setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, stock: nextStock, units_sold: (Number(p.units_sold) || 0) + soldInc } : p)));
+        const update: { stock: number; units_sold?: number } = { stock: nextStock };
+        if (soldInc > 0) {
+            const current = products.find((p) => p.id === id);
+            update.units_sold = (Number(current?.units_sold) || 0) + soldInc;
+        }
+        await supabase.from('products').update(update).eq('id', id);
     };
 
     // Cambia el estado de una orden (se refleja en vivo en el rastreador del cliente).
@@ -296,6 +311,8 @@ export default function AdminDashboard() {
             condition: p.condition || 'nuevo',
             platform: p.platform || '',
             category: p.category || '',
+            genre: p.genre || '',
+            discs: p.discs != null ? String(p.discs) : '',
         });
     };
 
@@ -315,13 +332,15 @@ export default function AdminDashboard() {
             condition: editForm.condition,
             platform: editForm.platform.trim() !== '' ? editForm.platform.trim() : null,
             category: editForm.category.trim() !== '' ? editForm.category.trim() : null,
+            genre: editForm.genre.trim() !== '' ? editForm.genre.trim() : null,
+            discs: editForm.discs.trim() !== '' ? Number(editForm.discs) : null,
         };
 
         // Optimistic UI
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === editProduct.id
-                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition, platform: updates.platform ?? p.platform, category: updates.category ?? p.category }
+                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition, platform: updates.platform ?? p.platform, category: updates.category ?? p.category, genre: updates.genre ?? p.genre, discs: updates.discs ?? p.discs }
                     : p
             )
         );
@@ -362,8 +381,41 @@ export default function AdminDashboard() {
             (sum, p) => sum + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.stock) || 0),
             0
         );
-        return { totalStock, inventoryValue, pendingRevenue, waitingClients, projectedProfit };
+        // Ganancia realizada: (precio - costo) por unidad ya vendida.
+        const realizedProfit = products.reduce(
+            (sum, p) => sum + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.units_sold) || 0),
+            0
+        );
+        const unitsSold = products.reduce((sum, p) => sum + (Number(p.units_sold) || 0), 0);
+        return { totalStock, inventoryValue, pendingRevenue, waitingClients, projectedProfit, realizedProfit, unitsSold };
     }, [products, orders, backorders]);
+
+    // Tabla de inventario: filtra por búsqueda/estado y ordena según el criterio.
+    const sortedProducts = useMemo(() => {
+        const q = invSearch.trim().toLowerCase();
+        const list = products.filter((p) => {
+            const matchCond = invCond === 'todos' || (p.condition ?? 'nuevo') === invCond;
+            const matchSearch = q === '' || `${p.name} ${p.category ?? ''} ${p.platform ?? ''}`.toLowerCase().includes(q);
+            return matchCond && matchSearch;
+        });
+        switch (invSort) {
+            case 'stock-desc': return list.sort((a, b) => (b.stock || 0) - (a.stock || 0));
+            case 'stock-asc': return list.sort((a, b) => (a.stock || 0) - (b.stock || 0));
+            case 'nombre': return list.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+            case 'precio-desc': return list.sort((a, b) => (b.price || 0) - (a.price || 0));
+            case 'precio-asc': return list.sort((a, b) => (a.price || 0) - (b.price || 0));
+            case 'vendidos-desc': return list.sort((a, b) => (Number(b.units_sold) || 0) - (Number(a.units_sold) || 0));
+            default: return list; // recientes: ya viene ordenado por created_at desc.
+        }
+    }, [products, invSort, invSearch, invCond]);
+
+    // Paginación: 10 ítems por página.
+    const invTotalPages = Math.max(1, Math.ceil(sortedProducts.length / INV_PAGE_SIZE));
+    const invPageSafe = Math.min(invPage, invTotalPages);
+    const pageProducts = sortedProducts.slice((invPageSafe - 1) * INV_PAGE_SIZE, invPageSafe * INV_PAGE_SIZE);
+
+    // Reinicia a la página 1 al cambiar búsqueda, estado u orden.
+    useEffect(() => { setInvPage(1); }, [invSearch, invCond, invSort]);
 
     const money = (n: number) =>
         n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -550,7 +602,7 @@ export default function AdminDashboard() {
                 {tabActive === 'inventario' && (
                 <>
                 {/* KPIs / Métricas */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total en Stock</p>
                         <p className="mt-2 text-2xl font-black text-white">{kpis.totalStock.toLocaleString('es-PE')}</p>
@@ -576,6 +628,11 @@ export default function AdminDashboard() {
                         <p className="mt-2 text-2xl font-black text-teal-400">S/. {money(kpis.projectedProfit)}</p>
                         <p className="text-[11px] text-slate-500 mt-1">margen del stock actual</p>
                     </div>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia Realizada</p>
+                        <p className="mt-2 text-2xl font-black text-green-400">S/. {money(kpis.realizedProfit)}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">{kpis.unitsSold.toLocaleString('es-PE')} unidades vendidas</p>
+                    </div>
                 </section>
 
                 {/* Exportación de reportes */}
@@ -591,7 +648,33 @@ export default function AdminDashboard() {
 
                 {/* Tabla Productos */}
                 <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                    <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">Stock en Almacén</h2>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Stock en Almacén</h2>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <input
+                                type="text"
+                                value={invSearch}
+                                onChange={(e) => setInvSearch(e.target.value)}
+                                placeholder="Buscar por nombre, categoría..."
+                                className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 w-56"
+                            />
+                            <select value={invCond} onChange={(e) => setInvCond(e.target.value as typeof invCond)} className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white">
+                                <option value="todos">Todos los estados</option>
+                                <option value="nuevo">Nuevo</option>
+                                <option value="segunda_mano">Seminuevo</option>
+                            </select>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ordenar</span>
+                            <select value={invSort} onChange={(e) => setInvSort(e.target.value as typeof invSort)} className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white">
+                                <option value="recientes">Más recientes</option>
+                                <option value="stock-desc">Stock: Mayor a Menor</option>
+                                <option value="stock-asc">Stock: Menor a Mayor</option>
+                                <option value="vendidos-desc">Más vendidos</option>
+                                <option value="nombre">Nombre (A-Z)</option>
+                                <option value="precio-desc">Precio: Mayor a Menor</option>
+                                <option value="precio-asc">Precio: Menor a Mayor</option>
+                            </select>
+                        </div>
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
                             <thead className="text-slate-500 border-b border-slate-800 uppercase">
@@ -603,12 +686,16 @@ export default function AdminDashboard() {
                                     <th className="pb-3 text-right">Precio</th>
                                     <th className="pb-3 text-right">Margen</th>
                                     <th className="pb-3 text-center">Stock</th>
+                                    <th className="pb-3 text-center">Vendidos</th>
                                     <th className="pb-3 text-center">Ajuste</th>
                                     <th className="pb-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/60">
-                                {products.map((item) => (
+                                {pageProducts.length === 0 && (
+                                    <tr><td colSpan={10} className="py-6 text-center text-slate-500">No hay productos que coincidan.</td></tr>
+                                )}
+                                {pageProducts.map((item) => (
                                     <tr key={item.id} className="hover:bg-slate-950/40 transition">
                                         <td className="py-2">
                                             {item.image_url ? (
@@ -643,6 +730,15 @@ export default function AdminDashboard() {
                                                 {item.stock} unid.
                                             </span>
                                         </td>
+                                        <td className="py-3 text-center">
+                                            {(Number(item.units_sold) || 0) > 0 ? (
+                                                <span className="px-2.5 py-1 rounded-full font-bold bg-green-500/10 text-green-400">
+                                                    ✓ {item.units_sold} vend.
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-600">—</span>
+                                            )}
+                                        </td>
                                         <td className="py-3 text-center space-x-1 whitespace-nowrap">
                                             <button onClick={() => handleUpdateStock(item.id, item.stock, -1)} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold">-1</button>
                                             <button onClick={() => handleUpdateStock(item.id, item.stock, 1)} className="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 rounded font-bold">+1</button>
@@ -656,6 +752,19 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                     </div>
+                    {/* Paginación (10 por página) */}
+                    {sortedProducts.length > 0 && (
+                        <div className="flex items-center justify-between gap-3 mt-4 text-xs">
+                            <span className="text-slate-500">
+                                Mostrando {(invPageSafe - 1) * INV_PAGE_SIZE + 1}–{Math.min(invPageSafe * INV_PAGE_SIZE, sortedProducts.length)} de {sortedProducts.length}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setInvPage((p) => Math.max(1, p - 1))} disabled={invPageSafe <= 1} className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold disabled:opacity-30 disabled:cursor-not-allowed">‹ Anterior</button>
+                                <span className="text-slate-400 font-semibold">Pág. {invPageSafe} / {invTotalPages}</span>
+                                <button onClick={() => setInvPage((p) => Math.min(invTotalPages, p + 1))} disabled={invPageSafe >= invTotalPages} className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold disabled:opacity-30 disabled:cursor-not-allowed">Siguiente ›</button>
+                            </div>
+                        </div>
+                    )}
                 </section>
 
                 </>
@@ -942,6 +1051,27 @@ export default function AdminDashboard() {
                                         <option value="Figuras">Figuras</option>
                                         <option value="Joyas Épicas">💎 Joyas Épicas</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">Género</label>
+                                    <select value={editForm.genre} onChange={(e) => setEditForm({ ...editForm, genre: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white">
+                                        <option value="">— Selecciona —</option>
+                                        <option value="Acción">Acción</option>
+                                        <option value="Aventura">Aventura</option>
+                                        <option value="RPG">RPG</option>
+                                        <option value="Shooter">Shooter</option>
+                                        <option value="Deportes">Deportes</option>
+                                        <option value="Carreras">Carreras</option>
+                                        <option value="Lucha">Lucha</option>
+                                        <option value="Terror">Terror</option>
+                                        <option value="Estrategia">Estrategia</option>
+                                        <option value="Indie">Indie</option>
+                                        <option value="Familiar">Familiar</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 block mb-1">N° de discos</label>
+                                    <input type="number" min="1" value={editForm.discs} onChange={(e) => setEditForm({ ...editForm, discs: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" placeholder="1 (déjalo vacío o 1 si es un solo disco)" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2">

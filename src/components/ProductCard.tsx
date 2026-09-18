@@ -15,7 +15,8 @@ interface Props {
 // Color temático por plataforma.
 export function platformStyle(platform?: string): string {
     const s = (platform || '').toLowerCase();
-    if (s.includes('ps5') || s.includes('ps4') || s.includes('playstation')) return 'bg-blue-600 text-white';
+    if (s.includes('ps5')) return 'bg-white text-black border border-gray-300';
+    if (s.includes('ps4') || s.includes('playstation')) return 'bg-blue-600 text-white';
     if (s.includes('xbox')) return 'bg-emerald-600 text-white';
     if (s.includes('switch') || s.includes('nintendo')) return 'bg-red-600 text-white';
     return 'bg-violet-600 text-white';
@@ -69,6 +70,9 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
     const [added, setAdded] = useState(false);
     const [imgError, setImgError] = useState(false);
     const kind = productKind(product);
+    // PS4 lleva badge un poco más grande que el resto.
+    const isPs4 = (product.platform || '').toLowerCase().includes('ps4');
+    const badgeSize = isPs4 ? 'text-lg scale-110 px-2 py-1' : 'text-[9px] px-1.5 py-0.5';
 
     const isSecond = product.condition === 'segunda_mano';
     const old = Number(product.old_price) || 0;
@@ -91,7 +95,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 aria-label={`Vista rápida de ${product.name}`}
             >
                 {/* Plataforma (sup. izquierda) */}
-                <span className={`absolute top-1.5 left-1.5 z-10 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded shadow ${platformStyle(product.platform)}`}>
+                <span className={`absolute top-1.5 left-1.5 z-10 font-black uppercase tracking-wide rounded shadow ${badgeSize} ${platformStyle(product.platform)}`}>
                     {product.platform || product.category}
                 </span>
                 {/* Estado (sup. derecha) */}
@@ -121,10 +125,17 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 </span>
             </button>
 
-            {/* Tag de tipo de producto (dinámico) */}
-            <span className="self-start text-[9px] font-bold uppercase tracking-wide text-[#2dd4bf] bg-[#2dd4bf]/10 px-1.5 py-0.5 rounded mb-1">
-                {kind.icon} {kind.label}
-            </span>
+            {/* Tags: tipo de producto + N° de discos */}
+            <div className="flex flex-wrap items-center gap-1 mb-1">
+                <span className="text-[9px] font-bold uppercase tracking-wide text-[#2dd4bf] bg-[#2dd4bf]/10 px-1.5 py-0.5 rounded">
+                    {kind.icon} {kind.label}
+                </span>
+                {product.discs != null && product.discs >= 2 && (
+                    <span className="text-[9px] font-black uppercase tracking-wide text-[#fcd34d] bg-[#fcd34d]/10 border border-[#fcd34d]/30 px-1.5 py-0.5 rounded">
+                        💿 {product.discs} discos
+                    </span>
+                )}
+            </div>
 
             {/* Nombre */}
             <h3 className="font-bold text-[13px] text-white leading-tight line-clamp-2 mb-1">{product.name}</h3>
@@ -140,13 +151,11 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 )}
             </div>
 
-            {/* Precio */}
-            {product.stock === 0 ? (
-                <div className="mt-auto">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                        🔴 AGOTADO
-                    </span>
-                </div>
+            {/* Precio / Agotado */}
+            {product.stock <= 0 ? (
+                <span className="mt-auto inline-flex w-max items-center gap-1 text-sm font-black px-2.5 py-1 rounded-lg bg-rose-600/20 text-rose-400 border border-rose-500/40">
+                    🔴 AGOTADO
+                </span>
             ) : (
                 <>
                     {hasDiscount && (
@@ -182,7 +191,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                     <>
                         <button
                             disabled
-                            className="w-full py-2 rounded-lg text-xs font-black bg-zinc-800 text-zinc-400 cursor-not-allowed border border-zinc-700/50"
+                            className="w-full py-2 rounded-lg text-xs font-black bg-slate-800 text-slate-500 cursor-not-allowed"
                         >
                             🔴 Agotado / Sin Stock
                         </button>

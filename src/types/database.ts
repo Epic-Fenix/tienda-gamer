@@ -12,10 +12,13 @@ export interface Product {
     cost_price?: number; // Costo de adquisición (S/.)
     old_price?: number | null; // Precio anterior para mostrar descuento (opcional)
     stock: number;
+    units_sold?: number; // Unidades vendidas acumuladas (para ganancia realizada)
     allow_reservation: boolean;
     min_reservation_pct: number;
     image_url?: string | null;
     barcode?: string;
+    discs?: number | null;   // N° de discos (juegos con 2+ discos)
+    genre?: string | null;   // Género del juego (para el filtro por género)
     created_at?: string;
 }
 
@@ -67,21 +70,6 @@ export interface Banner {
     is_active: boolean;
     order_index: number;
     created_at?: string;
-}
-
-export interface HeroBanner {
-    id: string;
-    title: string;
-    subtitle: string;
-    badge?: string;
-    gradient: string;
-    button_primary_text: string;
-    button_primary_link: string;
-    button_secondary_text?: string;
-    button_secondary_link?: string;
-    image_url?: string;
-    is_active: boolean;
-    display_order: number;
 }
 
 export type DiscountType = 'percent' | 'fixed';
