@@ -98,6 +98,10 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
     const hasDiscount = old > product.price && product.price > 0;
     const discountPct = hasDiscount ? Math.round(((old - product.price) / old) * 100) : 0;
     const lowStock = product.stock > 0 && product.stock <= 3;
+    // Nintendo Switch: label corto y cápsula más compacta (evita badge exagerado).
+    const isSwitch = /switch|nintendo/.test((product.platform || '').toLowerCase());
+    const badgeLabel = isSwitch ? 'Switch' : (product.platform || product.category);
+    const badgeCapsule = isSwitch ? 'gap-1.5 px-2 py-1 text-[10px]' : 'gap-2 px-3 py-1.5 text-xs';
 
     const handleAdd = () => {
         addItem(product);
@@ -114,9 +118,9 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 aria-label={`Vista rápida de ${product.name}`}
             >
                 {/* Brand badge de plataforma (sup. izquierda) */}
-                <span className={`absolute top-2 left-2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wide shadow-lg backdrop-blur-md ${platformStyle(product.platform)}`}>
+                <span className={`absolute top-2 left-2 z-10 flex items-center rounded-md font-black uppercase tracking-wide shadow-lg backdrop-blur-md ${badgeCapsule} ${platformStyle(product.platform)}`}>
                     {platformLogo(product.platform)}
-                    {product.platform || product.category}
+                    {badgeLabel}
                 </span>
                 {/* Estado (sup. derecha) */}
                 <span className={`absolute top-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded shadow ${isSecond ? 'bg-[#8b5cf6] text-white' : 'bg-[#2dd4bf] text-zinc-950'}`}>
