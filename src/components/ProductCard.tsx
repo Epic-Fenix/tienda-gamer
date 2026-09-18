@@ -12,14 +12,36 @@ interface Props {
     onQuickView: (p: Product) => void;
 }
 
-// Color temático por plataforma.
+// Color de marca oficial por plataforma.
 export function platformStyle(platform?: string): string {
     const s = (platform || '').toLowerCase();
     if (s.includes('ps5')) return 'bg-white text-black border border-gray-300';
-    if (s.includes('ps4') || s.includes('playstation')) return 'bg-blue-600 text-white';
-    if (s.includes('xbox')) return 'bg-emerald-600 text-white';
-    if (s.includes('switch') || s.includes('nintendo')) return 'bg-red-600 text-white';
-    return 'bg-violet-600 text-white';
+    if (s.includes('ps4') || s.includes('ps3') || s.includes('ps2') || s.includes('playstation')) return 'bg-[#00439C] text-white border border-white/20';
+    if (s.includes('xbox')) return 'bg-[#107C10] text-white border border-white/20';
+    if (s.includes('switch') || s.includes('nintendo')) return 'bg-[#E60012] text-white border border-white/20';
+    return 'bg-violet-600 text-white border border-white/20';
+}
+
+// Logo SVG de marca (14px, fill-current). null si no hay logo para esa plataforma.
+export function platformLogo(platform?: string) {
+    const s = (platform || '').toLowerCase();
+    const cls = 'w-5 h-5 fill-current shrink-0';
+    if (s.includes('ps') || s.includes('playstation')) {
+        return (
+            <svg viewBox="0 0 24 24" className={cls} aria-hidden="true"><path d="M8.985 2.596v17.548l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.181.76.814.76 1.505v5.876c2.441 1.193 4.362-.002 4.362-3.153 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.393-1.502zm4.656 16.242l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.499v-2.385l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.688 2.041 1.706 1.588 2.404-.454.686-1.596 1.192-1.596 1.192l-8.629 3.09v-2.412zm-9.209.316c-1.906-.531-2.224-1.646-1.359-2.294.799-.598 2.15-1.055 2.15-1.055l5.606-1.996v2.267l-4.056 1.44c-.717.258-.827.625-.246.818.586.192 1.637.14 2.354-.123l1.948-.7v2.021c-.124.024-.263.049-.393.073-1.939.32-4.006.186-5.958-.42z"/></svg>
+        );
+    }
+    if (s.includes('switch') || s.includes('nintendo')) {
+        return (
+            <svg viewBox="0 0 24 24" className={cls} aria-hidden="true"><path d="M14.176 24h3.674c3.376 0 6.15-2.774 6.15-6.15V6.15C24 2.775 21.226 0 17.85 0H14.1c-.074 0-.15.075-.15.15v23.7c0 .075.076.15.226.15zm4.574-13.199c1.351 0 2.399 1.125 2.399 2.398 0 1.35-1.125 2.399-2.399 2.399-1.35 0-2.398-1.049-2.398-2.399-.075-1.273 1.048-2.398 2.398-2.398zM6.15 0C2.775 0 0 2.775 0 6.15v11.7C0 21.226 2.775 24 6.15 24h3.75c.074 0 .149-.075.149-.15V.15c0-.075-.075-.15-.149-.15zm1.199 20.4c-2.324 0-4.276-1.876-4.276-4.276V7.801c0-2.324 1.877-4.276 4.276-4.276.674 0 1.199.6 1.199 1.2v14.55c0 .599-.525 1.125-1.199 1.125z"/></svg>
+        );
+    }
+    if (s.includes('xbox')) {
+        return (
+            <svg viewBox="0 0 24 24" className={cls} aria-hidden="true"><path d="M4.102 21.033C6.211 22.881 8.977 24 12 24c3.026 0 5.789-1.119 7.902-2.967 1.877-1.912-4.316-8.709-7.902-11.417-3.582 2.708-9.779 9.505-7.898 11.417zm11.16-14.406c2.5 2.961 7.484 10.313 6.076 12.912C23.002 17.48 24 14.861 24 12.004c0-3.34-1.365-6.362-3.57-8.536 0 0-.027-.022-.082-.042-.063-.022-.152-.045-.281-.045-.592 0-1.985.434-4.805 3.246zM3.654 3.426c-.057.02-.082.041-.086.042C1.365 5.642 0 8.664 0 12.004c0 2.854.998 5.473 2.661 7.533-1.401-2.605 3.579-9.951 6.08-12.91-2.82-2.813-4.216-3.245-4.806-3.245-.128 0-.216.021-.281.046v-.002zM12 3.551S9.055 1.828 6.755 1.746c-.903-.032-1.454.195-1.521.229C7.379.454 9.659 0 11.984 0H12c2.334 0 4.605.454 6.766 1.975-.067-.034-.618-.261-1.521-.229C14.945 1.828 12 3.551 12 3.551z"/></svg>
+        );
+    }
+    return null;
 }
 
 // ¿Es una consola? (define si aplica la etiqueta "Reacondicionado").
@@ -70,9 +92,6 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
     const [added, setAdded] = useState(false);
     const [imgError, setImgError] = useState(false);
     const kind = productKind(product);
-    // PS4 lleva badge un poco más grande que el resto.
-    const isPs4 = (product.platform || '').toLowerCase().includes('ps4');
-    const badgeSize = isPs4 ? 'text-lg scale-110 px-2 py-1' : 'text-[9px] px-1.5 py-0.5';
 
     const isSecond = product.condition === 'segunda_mano';
     const old = Number(product.old_price) || 0;
@@ -94,8 +113,9 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                 className="relative w-full aspect-[3/4] mb-2 rounded-lg overflow-hidden bg-[#13072b] flex items-center justify-center border border-[#3e1b75] text-left"
                 aria-label={`Vista rápida de ${product.name}`}
             >
-                {/* Plataforma (sup. izquierda) */}
-                <span className={`absolute top-1.5 left-1.5 z-10 font-black uppercase tracking-wide rounded shadow ${badgeSize} ${platformStyle(product.platform)}`}>
+                {/* Brand badge de plataforma (sup. izquierda) */}
+                <span className={`absolute top-2 left-2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wide shadow-lg backdrop-blur-md ${platformStyle(product.platform)}`}>
+                    {platformLogo(product.platform)}
                     {product.platform || product.category}
                 </span>
                 {/* Estado (sup. derecha) */}

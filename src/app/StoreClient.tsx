@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Product, Banner } from '@/types/database';
 import { useCart } from '@/context/CartContext';
@@ -115,6 +116,14 @@ export default function Home() {
   const [now, setNow] = useState(0);
   const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // Scroll horizontal de la cinta de categorías (flechas de escritorio).
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoriesRef.current) {
+      categoriesRef.current.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
+    }
+  };
 
   // Oferta que termina al final del día (para la cuenta regresiva del hero).
   const offerEnd = useMemo(() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d.getTime(); }, []);
@@ -370,7 +379,11 @@ export default function Home() {
         </section>
 
         {/* Cinta de categorías */}
-        <section className="-mx-4 px-4 overflow-x-auto">
+        <div className="relative group flex items-center">
+          <button onClick={() => scrollCategories('left')} aria-label="Categorías anteriores" className="hidden md:flex absolute left-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-r from-[#13072b] via-[#13072b]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronLeft className="w-5 h-5 drop-shadow-md" />
+          </button>
+          <div ref={categoriesRef} className="overflow-x-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex gap-2 min-w-max pb-1">
             {CATEGORIES.map((c) => (
               <button
@@ -382,7 +395,11 @@ export default function Home() {
               </button>
             ))}
           </div>
-        </section>
+          </div>
+          <button onClick={() => scrollCategories('right')} aria-label="Categorías siguientes" className="hidden md:flex absolute right-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-l from-[#13072b] via-[#13072b]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronRight className="w-5 h-5 drop-shadow-md" />
+          </button>
+        </div>
 
         {/* Grilla de géneros */}
         <section>

@@ -3,7 +3,7 @@
 import { Product } from '@/types/database';
 import { useCart } from '@/context/CartContext';
 import { formatSoles } from '@/lib/payment';
-import { platformStyle, productKind, conditionText } from '@/components/ProductCard';
+import { platformStyle, platformLogo, productKind, conditionText } from '@/components/ProductCard';
 
 interface Props {
     product: Product;
@@ -25,6 +25,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
         { label: 'Plataforma', value: product.platform || product.category },
         { label: 'Condición', value: conditionText(product) },
         { label: 'Formato', value: formato },
+        ...(product.discs != null && product.discs >= 2 ? [{ label: 'Discos', value: `${product.discs} discos` }] : []),
         { label: 'Garantía', value: isSecond ? 'Revisado y garantizado por tienda' : 'Garantía de tienda' },
     ];
 
@@ -43,7 +44,8 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5">
                     {/* Imagen */}
                     <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center">
-                        <span className={`absolute top-2 left-2 z-10 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${platformStyle(product.platform)}`}>
+                        <span className={`absolute top-2 left-2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wide shadow-lg backdrop-blur-md ${platformStyle(product.platform)}`}>
+                            {platformLogo(product.platform)}
                             {product.platform || product.category}
                         </span>
                         <span className={`absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-md ${isSecond ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-black'}`}>
@@ -62,12 +64,10 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                         <h2 className="text-lg font-black text-white leading-tight">{product.name}</h2>
                         <p className="text-xs text-slate-400 mt-1 line-clamp-3">{product.description || 'Sin descripción disponible.'}</p>
 
-                        {/* Precio */}
-                        {product.stock === 0 ? (
+                        {/* Precio / Agotado */}
+                        {product.stock <= 0 ? (
                             <div className="mt-3">
-                                <span className="inline-flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                    🔴 AGOTADO
-                                </span>
+                                <span className="inline-flex items-center gap-1 text-sm font-black px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-400 border border-rose-500/40">🔴 AGOTADO</span>
                             </div>
                         ) : (
                             <div className="mt-3 flex items-end gap-2">
@@ -117,7 +117,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                                 <>
                                     <button
                                         disabled
-                                        className="w-full py-2.5 rounded-lg text-sm font-black bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                                        className="w-full py-2.5 rounded-lg text-sm font-black bg-slate-800 text-slate-500 cursor-not-allowed"
                                     >
                                         🔴 Agotado / Sin Stock
                                     </button>
