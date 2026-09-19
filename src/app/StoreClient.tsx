@@ -46,6 +46,7 @@ const PROMO_SLIDES: Slide[] = [
     title: '¿Buscas un juego? Nosotros lo buscamos por ti',
     subtitle: 'Dinos qué título quieres y lo conseguimos. Escríbenos y te lo traemos.',
     gradient: 'from-[#134e4a] via-[#0e7490] to-[#2563eb]',
+    image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200',
     badge: '🔎 Te lo buscamos',
     action: 'buscar',
     primaryLabel: '🔎 Buscar mi juego',

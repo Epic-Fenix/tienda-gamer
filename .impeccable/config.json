@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-09-19T03:23:08.610Z",
+        "reason": "Cuerpo Geist/Arial intencional; identidad gamer via Orbitron en titulos/logo"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-09-19T03:25:15.089Z",
+        "reason": "Logo arcade neon intencional (Opcion B elegida por el dueno)"
+      }
+    ]
+  }
+}
