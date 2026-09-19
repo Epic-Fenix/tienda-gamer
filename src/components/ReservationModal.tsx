@@ -35,11 +35,13 @@ export default function ReservationModal({ product, onClose }: Props) {
         setLoading(true);
 
         const orderCode = genOrderCode();
+        const accessToken = crypto.randomUUID();
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
         const { error } = await supabase.from('orders').insert({
             order_code: orderCode,
+            access_token: accessToken,
             product_id: product.id,
             customer_name: name,
             customer_phone: phone,
@@ -83,7 +85,7 @@ export default function ReservationModal({ product, onClose }: Props) {
             isFullPayment: fullPayment,
         });
 
-        router.push(`/order/${orderCode}`);
+        router.push(`/order/${orderCode}?t=${accessToken}`);
     };
 
     return (

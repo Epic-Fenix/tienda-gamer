@@ -18,11 +18,12 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const token = new URLSearchParams(window.location.search).get('t') ?? '';
         const fetchOrder = async () => {
-            // Vía RPC segura (no expone la tabla); fallback a select directo si el RPC no existe aún.
-            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_order', { p_code: code });
+            // Boleta segura: requiere código + token. Fallback a select directo solo si el RPC no existe aún (pre-migración).
+            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_order', { p_code: code, p_token: token });
             let orderData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
-            if (rpcErr || !orderData) {
+            if (rpcErr && token === '') {
                 const { data } = await supabase.from('orders').select('*').eq('order_code', code).single();
                 orderData = data;
             }
@@ -91,7 +92,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
 
                 {/* QR */}
                 <div className="qr-box bg-white p-4 rounded-xl w-max mx-auto mb-5">
-                    <QRCodeSVG value={orderUrl(order.order_code)} size={150} />
+                    <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={150} />
                 </div>
 
                 {/* Detalle de productos */}

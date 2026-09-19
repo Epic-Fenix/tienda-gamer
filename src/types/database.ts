@@ -55,6 +55,7 @@ export interface Order {
     discount_amount?: number;
     pickup_deadline?: string;
     status: OrderStatus | string;
+    access_token?: string; // Token secreto para ver la boleta (enlace no enumerable)
     created_at?: string;
     product?: Product;
     items?: OrderItem[] | null;

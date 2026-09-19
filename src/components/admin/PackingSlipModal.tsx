@@ -93,7 +93,7 @@ export default function PackingSlipModal({ order, onClose }: Props) {
                             <p className="font-bold">Saldo: S/. {(Number(order.pending_amount) || 0).toFixed(2)}</p>
                         </div>
                         <div className="text-center">
-                            <QRCodeSVG value={orderUrl(order.order_code)} size={70} />
+                            <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={70} />
                             <p className="text-[7px] mt-0.5">Escanea para seguimiento</p>
                         </div>
                     </div>

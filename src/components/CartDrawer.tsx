@@ -14,6 +14,7 @@ const DELIVERY_EMOJI: Record<string, string> = { feria_grau: '🏬', domicilio: 
 
 interface SuccessOrder {
     code: string;
+    token: string;
     reservation: number;
     pending: number;
     isFull: boolean;
@@ -132,6 +133,7 @@ export default function CartDrawer() {
         setLoading(true);
 
         const orderCode = genOrderCode();
+        const accessToken = crypto.randomUUID();
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
@@ -153,6 +155,7 @@ export default function CartDrawer() {
 
         const { error } = await supabase.from('orders').insert({
             order_code: orderCode,
+            access_token: accessToken,
             product_id: items[0]?.product_id ?? null,
             customer_name: name,
             customer_phone: phone,
@@ -216,6 +219,7 @@ export default function CartDrawer() {
 
         setSuccess({
             code: orderCode,
+            token: accessToken,
             reservation,
             pending,
             isFull: payFull,
@@ -312,7 +316,7 @@ export default function CartDrawer() {
                                     <p className="text-xl font-mono font-black text-indigo-400">#{success.code}</p>
                                 </div>
                                 <div className="bg-white p-3 rounded-xl w-max mx-auto">
-                                    <QRCodeSVG value={orderUrl(success.code)} size={150} />
+                                    <QRCodeSVG value={orderUrl(success.code, success.token)} size={150} />
                                 </div>
                                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
                                     <div className="flex justify-between text-slate-400"><span>Entrega:</span><span className="text-white font-semibold text-right">{deliveryLabel(success.delivery)}</span></div>

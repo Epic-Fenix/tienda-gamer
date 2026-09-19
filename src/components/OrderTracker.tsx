@@ -155,9 +155,9 @@ export default function OrderTracker() {
 
                                         <div className="flex items-center gap-3">
                                             <div className="bg-white p-1.5 rounded-lg shrink-0">
-                                                <QRCodeSVG value={orderUrl(order.order_code)} size={64} />
+                                                <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={64} />
                                             </div>
-                                            <a href={`/order/${order.order_code}`} className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
+                                            <a href={`/order/${order.order_code}${order.access_token ? `?t=${order.access_token}` : ''}`} className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
                                                 Ver boleta y datos de pago
                                             </a>
                                         </div>

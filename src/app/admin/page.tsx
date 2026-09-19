@@ -866,7 +866,7 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="py-3 text-right whitespace-nowrap space-x-2">
                                             <button onClick={() => setPackingOrder(ord)} className="text-xs text-slate-300 hover:text-white" title="Etiqueta de despacho">📦 Etiqueta</button>
-                                            <a href={`/order/${ord.order_code}`} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline" title="Abrir boleta en nueva pestaña">🧾 Boleta ↗</a>
+                                            <a href={`/order/${ord.order_code}${ord.access_token ? `?t=${ord.access_token}` : ''}`} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline" title="Abrir boleta en nueva pestaña">🧾 Boleta ↗</a>
                                             <button onClick={() => setVerifyOrder(ord)} className="text-xs text-indigo-400 hover:underline">Verificar →</button>
                                         </td>
                                     </tr>
@@ -1201,7 +1201,7 @@ export default function AdminDashboard() {
                             <div className="flex justify-between gap-2 text-amber-400"><span>Saldo pendiente</span><span className="font-bold">S/. {money(Number(verifyOrder.pending_amount) || 0)}</span></div>
                         </div>
                         <div className="flex gap-2 mt-4">
-                            <a href={`/order/${verifyOrder.order_code}`} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">🧾 Ver comprobante</a>
+                            <a href={`/order/${verifyOrder.order_code}${verifyOrder.access_token ? `?t=${verifyOrder.access_token}` : ''}`} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">🧾 Ver comprobante</a>
                             <button onClick={() => setVerifyOrder(null)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition">Cerrar</button>
                         </div>
                     </div>
