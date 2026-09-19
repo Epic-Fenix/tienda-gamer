@@ -20,7 +20,7 @@ export function platformStyle(platform?: string): string {
     if (s.includes('ps4') || s.includes('ps2') || s.includes('playstation')) return 'bg-[#00439C] text-white border border-white/20';
     if (s.includes('xbox')) return 'bg-[#107C10] text-white border border-white/20';
     if (s.includes('switch') || s.includes('nintendo')) return 'bg-[#E60012] text-white border border-white/20';
-    return 'bg-violet-600 text-white border border-white/20';
+    return 'bg-teal-600 text-white border border-white/20';
 }
 
 // Logo SVG de marca (14px, fill-current). null si no hay logo para esa plataforma.
@@ -112,11 +112,11 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
     };
 
     return (
-        <div className="group relative bg-[#2a1352] border border-[#3e1b75] rounded-xl p-2.5 flex flex-col hover:border-[#8b5cf6]/70 hover:shadow-lg hover:shadow-[#8b5cf6]/20 transition-all duration-300">
+        <div className="group relative bg-[#16161f] border border-[#26262f] rounded-xl p-2.5 flex flex-col hover:border-[#2dd4bf]/70 hover:shadow-lg hover:shadow-[#2dd4bf]/20 transition-all duration-300">
             {/* Carátula */}
             <button
                 onClick={() => onQuickView(product)}
-                className="relative w-full aspect-[3/4] mb-2 rounded-lg overflow-hidden bg-[#13072b] flex items-center justify-center border border-[#3e1b75] text-left"
+                className="relative w-full aspect-[3/4] mb-2 rounded-lg overflow-hidden bg-[#0b0b12] flex items-center justify-center border border-[#26262f] text-left"
                 aria-label={`Vista rápida de ${product.name}`}
             >
                 {/* Brand badge de plataforma (sup. izquierda) */}
@@ -125,12 +125,12 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                     {badgeLabel}
                 </span>
                 {/* Estado (sup. derecha) */}
-                <span className={`absolute top-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded shadow ${isSecond ? 'bg-[#8b5cf6] text-white' : 'bg-[#2dd4bf] text-zinc-950'}`}>
+                <span className={`absolute top-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded shadow ${isSecond ? 'bg-sky-600 text-white' : 'bg-[#2dd4bf] text-zinc-950'}`}>
                     {conditionText(product)}
                 </span>
                 {/* Joya Épica */}
                 {isEpic(product) && (
-                    <span className="absolute bottom-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-[#8b5cf6] to-[#2dd4bf] text-white shadow" style={{ textShadow: '0 0 6px rgba(139,92,246,0.9)' }}>
+                    <span className="absolute bottom-1.5 right-1.5 z-10 text-[9px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-[#2dd4bf] to-[#2dd4bf] text-white shadow" style={{ textShadow: '0 0 6px rgba(139,92,246,0.9)' }}>
                         💎 ÉPICO
                     </span>
                 )}
@@ -144,7 +144,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={product.image_url} alt={product.name} onError={() => setImgError(true)} className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out" />
                 ) : (
-                    <span className="text-xs text-[#6d4aa8]">Sin imagen</span>
+                    <span className="text-xs text-[#475569]">Sin imagen</span>
                 )}
                 <span className="absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-bold text-white bg-black/60 opacity-0 group-hover:opacity-100 transition">
                     👁️ Vista rápida
@@ -208,7 +208,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                         </button>
                         <button
                             onClick={() => onReserve(product)}
-                            className="w-full py-1.5 rounded-lg text-[11px] font-bold text-[#c4b5fd] bg-[#3e1b75]/50 hover:bg-[#3e1b75] border border-[#8b5cf6]/30 hover:border-[#8b5cf6]/60 transition"
+                            className="w-full py-1.5 rounded-lg text-[11px] font-bold text-[#cbd5e1] bg-[#26262f]/50 hover:bg-[#26262f] border border-[#2dd4bf]/30 hover:border-[#2dd4bf]/60 transition"
                         >
                             Separar con {product.min_reservation_pct}%
                         </button>
@@ -223,7 +223,7 @@ export default function ProductCard({ product, onReserve, onBackorder, onQuickVi
                         </button>
                         <button
                             onClick={() => onBackorder(product)}
-                            className="w-full py-1.5 rounded-lg text-[11px] font-bold text-[#c4b5fd] bg-[#3e1b75]/50 hover:bg-[#3e1b75] transition"
+                            className="w-full py-1.5 rounded-lg text-[11px] font-bold text-[#cbd5e1] bg-[#26262f]/50 hover:bg-[#26262f] transition"
                         >
                             Encargar producto
                         </button>

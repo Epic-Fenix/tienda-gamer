@@ -35,8 +35,8 @@ type Slide = {
 };
 
 const DEFAULT_SLIDES: Slide[] = [
-  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5' },
-  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#8b5cf6] to-[#4c1d95]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5' },
+  { title: '¡Nuevos ingresos PS5!', subtitle: 'Marvel’s Spider-Man 2 y más lanzamientos ya en stock físico.', gradient: 'from-[#26262f] via-[#14b8a6] to-[#2563eb]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2651280/library_hero.jpg', targetSlug: 'spider-man-2-ps5' },
+  { title: 'Preventas exclusivas', subtitle: 'Asegura tu juego con solo 20% y recógelo el día de estreno.', gradient: 'from-[#7c1d6f] via-[#2dd4bf] to-[#0f766e]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', targetSlug: 'elden-ring-sote-ps5' },
   { title: 'Ofertas gamer imperdibles', subtitle: 'Los mejores títulos con descuentos y garantía de tienda.', gradient: 'from-[#1d4ed8] via-[#0e7490] to-[#2dd4bf]', image_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_hero.jpg', cta: 'Ver ofertas', href: FACEBOOK_URL },
 ];
 
@@ -45,7 +45,7 @@ const PROMO_SLIDES: Slide[] = [
   {
     title: '¿Buscas un juego? Nosotros lo buscamos por ti',
     subtitle: 'Dinos qué título quieres y lo conseguimos. Escríbenos y te lo traemos.',
-    gradient: 'from-[#4c1d95] via-[#6d28d9] to-[#2563eb]',
+    gradient: 'from-[#0f766e] via-[#14b8a6] to-[#2563eb]',
     badge: '🔎 Te lo buscamos',
     action: 'buscar',
     primaryLabel: '🔎 Buscar mi juego',
@@ -53,7 +53,7 @@ const PROMO_SLIDES: Slide[] = [
   {
     title: 'Plan Canje / Trueque Gamer',
     subtitle: 'Deja tu disco o consola usada como parte de pago y llévate lo último ahorrando.',
-    gradient: 'from-[#4c1d95] via-[#7c3aed] to-[#2dd4bf]',
+    gradient: 'from-[#0f766e] via-[#0d9488] to-[#2dd4bf]',
     image_url: '/promo-trueque.png?v=2',
     badge: '🔄 Plan Canje',
     action: 'trueque',
@@ -281,29 +281,29 @@ export default function Home() {
   const current = slides[slide] ?? slides[0];
 
   return (
-    <main className="min-h-screen bg-[#13072b] text-slate-100">
+    <main className="min-h-screen bg-[#0b0b12] bg-[radial-gradient(120%_80%_at_50%_-10%,#1a1a24_0%,#0b0b12_55%)] text-slate-100">
       {/* TopBar */}
-      <div className="bg-[#0d0520] border-b border-[#3e1b75]/60 text-[11px]">
+      <div className="bg-[#0d0520] border-b border-[#26262f]/60 text-[11px]">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 text-[#2dd4bf] font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" /> Tienda física Lima: Stock en Vivo
           </span>
           <div className="flex items-center gap-4">
             <OrderTracker />
-            <button onClick={() => setTradeInOpen(true)} className="text-xs font-semibold text-[#c4b5fd] hover:text-white transition">🔄 Cotizar Trueque</button>
+            <button onClick={() => setTradeInOpen(true)} className="text-xs font-semibold text-[#cbd5e1] hover:text-white transition">🔄 Cotizar Trueque</button>
           </div>
         </div>
       </div>
 
       {/* Navbar */}
-      <header className="sticky top-0 z-30 bg-[#13072b]/95 backdrop-blur border-b border-[#3e1b75]/60">
+      <header className="sticky top-0 z-30 bg-[#0b0b12]/95 backdrop-blur border-b border-[#26262f]/60">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <a href="#" className="flex items-center gap-2 shrink-0 group">
             {/* Logo oficial SCOTT GAMES */}
             <LogoScott />
           </a>
           <div className="relative flex-1 max-w-xl mx-auto">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a72b8]">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
             </span>
             <input
@@ -312,13 +312,13 @@ export default function Home() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Busca juegos, consolas, accesorios..."
-              className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-16 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
+              className="w-full bg-[#16161f] border border-[#26262f] rounded-xl pl-9 pr-16 py-2.5 text-sm text-white placeholder-[#94a3b8] focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
           <button onClick={openCart} className="relative shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-zinc-950 bg-[#fcd34d] hover:bg-[#fbbf24] transition">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
             <span className="hidden sm:inline">Carrito</span>
-            {count > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#8b5cf6] text-white text-[11px] font-black flex items-center justify-center border-2 border-[#13072b]">{count}</span>}
+            {count > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#2dd4bf] text-white text-[11px] font-black flex items-center justify-center border-2 border-[#0b0b12]">{count}</span>}
           </button>
         </div>
       </header>
@@ -327,12 +327,12 @@ export default function Home() {
         {/* Hero grid */}
         <section>
           {/* Banner principal (carrusel) */}
-          <div className="relative overflow-hidden rounded-3xl border border-[#3e1b75] flex shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl border border-[#26262f] flex shadow-2xl">
             <div className="flex w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${slide * 100}%)` }}>
               {slides.map((b, i) => (
                 <div
                   key={i}
-                  className={`min-w-full min-h-[220px] sm:min-h-[340px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#3e1b75] via-[#6d28d9] to-[#2563eb]'}`}
+                  className={`min-w-full min-h-[220px] sm:min-h-[340px] md:min-h-[460px] relative overflow-hidden flex items-center bg-gradient-to-r ${b.gradient || 'from-[#26262f] via-[#14b8a6] to-[#2563eb]'}`}
                 >
                   {/* Imagen a pantalla completa: cubre TODO el banner */}
                   {b.image_url && (
@@ -378,7 +378,7 @@ export default function Home() {
 
         {/* Cinta de categorías */}
         <div className="relative group flex items-center">
-          <button onClick={() => scrollCategories('left')} aria-label="Categorías anteriores" className="hidden md:flex absolute left-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-r from-[#13072b] via-[#13072b]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => scrollCategories('left')} aria-label="Categorías anteriores" className="hidden md:flex absolute left-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-r from-[#0b0b12] via-[#0b0b12]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
             <ChevronLeft className="w-5 h-5 drop-shadow-md" />
           </button>
           <div ref={categoriesRef} className="overflow-x-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -387,33 +387,33 @@ export default function Home() {
               <button
                 key={c.key}
                 onClick={() => setCategoryKey(c.key)}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${categoryKey === c.key ? 'bg-[#fcd34d] text-zinc-950 border-[#fcd34d]' : 'bg-[#2a1352] text-[#c4b5fd] border-[#3e1b75] hover:border-[#8b5cf6]'}`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${categoryKey === c.key ? 'bg-[#fcd34d] text-zinc-950 border-[#fcd34d]' : 'bg-[#16161f] text-[#cbd5e1] border-[#26262f] hover:border-[#2dd4bf]'}`}
               >
                 <span>{c.icon}</span> {c.label}
               </button>
             ))}
           </div>
           </div>
-          <button onClick={() => scrollCategories('right')} aria-label="Categorías siguientes" className="hidden md:flex absolute right-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-l from-[#13072b] via-[#13072b]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => scrollCategories('right')} aria-label="Categorías siguientes" className="hidden md:flex absolute right-0 z-20 h-full items-center justify-center px-2 bg-gradient-to-l from-[#0b0b12] via-[#0b0b12]/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity">
             <ChevronRight className="w-5 h-5 drop-shadow-md" />
           </button>
         </div>
 
         {/* Grilla de géneros */}
         <section>
-          <p className="text-[11px] font-black uppercase tracking-wider text-[#8a72b8] mb-2">Explora por género</p>
+          <p className="text-[11px] font-black uppercase tracking-wider text-[#94a3b8] mb-2">Explora por género</p>
           <div className="flex flex-wrap gap-2">
             {GENRES.map((gname) => (
               <button
                 key={gname}
                 onClick={() => setGenre((g) => (g === gname ? '' : gname))}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition ${genre === gname ? 'bg-[#8b5cf6] text-white border-[#8b5cf6]' : 'bg-[#2a1352] text-[#c4b5fd] border-[#3e1b75] hover:border-[#8b5cf6]'}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition ${genre === gname ? 'bg-[#2dd4bf] text-white border-[#2dd4bf]' : 'bg-[#16161f] text-[#cbd5e1] border-[#26262f] hover:border-[#2dd4bf]'}`}
               >
                 {gname}
               </button>
             ))}
             {(genre || categoryKey !== 'todos' || searchTerm || minPrice || maxPrice || onlyInStock || sortBy !== 'recientes') && (
-              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#8a72b8] hover:text-white underline">
+              <button onClick={() => { setGenre(''); setCategoryKey('todos'); setSearchTerm(''); setMinPrice(''); setMaxPrice(''); setOnlyInStock(false); setSortBy('recientes'); }} className="px-3 py-1.5 rounded-full text-xs font-bold text-[#94a3b8] hover:text-white underline">
                 Limpiar
               </button>
             )}
@@ -421,21 +421,21 @@ export default function Home() {
         </section>
 
         {/* Filtros compactos + contador */}
-        <section className="flex flex-wrap items-center gap-3 bg-[#2a1352] border border-[#3e1b75] rounded-xl p-3">
+        <section className="flex flex-wrap items-center gap-3 bg-[#16161f] border border-[#26262f] rounded-xl p-3">
           <span className="text-xs font-bold text-white">{filteredProducts.length} resultados</span>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#8a72b8] font-semibold">Precio</span>
-            <input type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Mín" className="w-16 bg-[#13072b] border border-[#3e1b75] rounded-lg px-2 py-1.5 text-xs text-white placeholder-[#6d4aa8] focus:outline-none focus:border-[#8b5cf6]" />
-            <span className="text-[#6d4aa8] text-xs">—</span>
-            <input type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Máx" className="w-16 bg-[#13072b] border border-[#3e1b75] rounded-lg px-2 py-1.5 text-xs text-white placeholder-[#6d4aa8] focus:outline-none focus:border-[#8b5cf6]" />
+            <span className="text-[11px] text-[#94a3b8] font-semibold">Precio</span>
+            <input type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Mín" className="w-16 bg-[#0b0b12] border border-[#26262f] rounded-lg px-2 py-1.5 text-xs text-white placeholder-[#475569] focus:outline-none focus:border-[#2dd4bf]" />
+            <span className="text-[#475569] text-xs">—</span>
+            <input type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Máx" className="w-16 bg-[#0b0b12] border border-[#26262f] rounded-lg px-2 py-1.5 text-xs text-white placeholder-[#475569] focus:outline-none focus:border-[#2dd4bf]" />
           </div>
           <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} className="w-4 h-4 accent-[#8b5cf6]" />
-            <span className="text-[11px] text-[#c4b5fd] font-semibold">Solo en stock</span>
+            <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} className="w-4 h-4 accent-[#2dd4bf]" />
+            <span className="text-[11px] text-[#cbd5e1] font-semibold">Solo en stock</span>
           </label>
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-[11px] text-[#8a72b8] font-semibold">Ordenar</span>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="bg-[#13072b] border border-[#3e1b75] rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#8b5cf6]">
+            <span className="text-[11px] text-[#94a3b8] font-semibold">Ordenar</span>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)} className="bg-[#0b0b12] border border-[#26262f] rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#2dd4bf]">
               <option value="recientes">Más recientes</option>
               <option value="precio-asc">Precio: Menor a Mayor</option>
               <option value="precio-desc">Precio: Mayor a Menor</option>
@@ -446,9 +446,9 @@ export default function Home() {
         {/* Grilla de productos */}
         <section id="catalogo" className="scroll-mt-20">
           {loading ? (
-            <p className="text-center text-[#8a72b8] py-10">Cargando catálogo...</p>
+            <p className="text-center text-[#94a3b8] py-10">Cargando catálogo...</p>
           ) : filteredProducts.length === 0 ? (
-            <p className="text-center text-[#8a72b8] py-10">No se encontraron productos con esos criterios.</p>
+            <p className="text-center text-[#94a3b8] py-10">No se encontraron productos con esos criterios.</p>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -464,7 +464,7 @@ export default function Home() {
                   >
                     Ver más productos
                   </button>
-                  <span className="text-[11px] text-[#8a72b8]">Mostrando {visibleCount} de {filteredProducts.length}</span>
+                  <span className="text-[11px] text-[#94a3b8]">Mostrando {visibleCount} de {filteredProducts.length}</span>
                 </div>
               )}
             </>
@@ -472,11 +472,11 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="mt-10 pt-8 border-t border-[#3e1b75]/60">
-          <div className="rounded-2xl border border-[#3e1b75] bg-gradient-to-r from-[#2a1352] to-[#3e1b75] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <footer className="mt-10 pt-8 border-t border-[#26262f]/60">
+          <div className="rounded-2xl border border-[#26262f] bg-gradient-to-r from-[#16161f] to-[#26262f] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
               <h3 className="text-lg font-black text-white">¡Únete a la comunidad SCOTT GAMES!</h3>
-              <p className="text-sm text-[#c4b5fd] mt-1">Ofertas, sorteos y novedades primero en nuestro Facebook.</p>
+              <p className="text-sm text-[#cbd5e1] mt-1">Ofertas, sorteos y novedades primero en nuestro Facebook.</p>
             </div>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white bg-[#1877F2] hover:bg-[#0f66d0] transition whitespace-nowrap">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.313 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" /></svg>
@@ -486,24 +486,24 @@ export default function Home() {
 
           {/* Canales oficiales de contacto */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-            <a href={CONTACT.whatsappSalesLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 transition">
+            <a href={CONTACT.whatsappSalesLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#26262f] bg-[#16161f] px-4 py-3 hover:border-[#25d366]/60 transition">
               <span className="text-lg">🟢</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">WhatsApp Ventas</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold">WhatsApp Ventas</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.whatsappSales}</span>
               </span>
             </a>
-            <a href={`https://wa.me/${CONTACT.whatsappSupportDigits}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#25d366]/60 transition">
+            <a href={`https://wa.me/${CONTACT.whatsappSupportDigits}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[#26262f] bg-[#16161f] px-4 py-3 hover:border-[#25d366]/60 transition">
               <span className="text-lg">💬</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">WhatsApp Soporte</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold">WhatsApp Soporte</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.whatsappSupport}</span>
               </span>
             </a>
-            <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#8b5cf6]/60 transition">
+            <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 rounded-xl border border-[#26262f] bg-[#16161f] px-4 py-3 hover:border-[#2dd4bf]/60 transition">
               <span className="text-lg">✉️</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">Correo</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold">Correo</span>
                 <span className="block text-sm font-bold text-white truncate">{CONTACT.email}</span>
               </span>
             </a>
@@ -511,18 +511,18 @@ export default function Home() {
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Feria Grau, Lima, Perú')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-[#3e1b75] bg-[#2a1352] px-4 py-3 hover:border-[#2dd4bf]/60 transition"
+              className="flex items-center gap-2 rounded-xl border border-[#26262f] bg-[#16161f] px-4 py-3 hover:border-[#2dd4bf]/60 transition"
             >
               <span className="text-lg">📍</span>
               <span className="min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider text-[#8a72b8] font-bold">Ubicación</span>
+                <span className="block text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold">Ubicación</span>
                 <span className="block text-sm font-bold text-white">{CONTACT.location}</span>
                 <span className="block text-[10px] text-[#2dd4bf]">Ver en Google Maps →</span>
               </span>
             </a>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8a72b8]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#94a3b8]">
             <LogoScott />
             <p>© {new Date().getFullYear()} SCOTT GAMES · Lima, Perú. Todos los derechos reservados.</p>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#2dd4bf] hover:text-white transition">Facebook Oficial</a>

@@ -75,7 +75,7 @@ export default function GamerAiBot() {
             <button
                 onClick={() => setOpen((v) => !v)}
                 aria-label="Asistente Gamer"
-                className="fixed bottom-6 right-24 z-40 flex items-center gap-2 h-14 pl-3 pr-4 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white shadow-2xl shadow-fuchsia-900/40 transition"
+                className="fixed bottom-6 right-24 z-40 flex items-center gap-2 h-14 pl-3 pr-4 rounded-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white shadow-2xl shadow-teal-900/40 transition"
             >
                 <span className="text-xl">🤖</span>
                 <span className="hidden sm:block text-xs font-black leading-tight text-left">Asistente<br />SCOTT</span>
@@ -84,7 +84,7 @@ export default function GamerAiBot() {
             {open && (
                 <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm h-[30rem] max-h-[72vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-fuchsia-600 to-indigo-600">
+                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600">
                         <div className="flex items-center gap-2">
                             <span className="text-xl">🤖</span>
                             <div>
