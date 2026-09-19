@@ -4,6 +4,8 @@
 create or replace function sell_items(items jsonb)
 returns void
 language sql
+security definer
+set search_path = public
 as $$
   -- qty positivo = venta (baja stock, sube vendidos); qty negativo = revertir (cancelación).
   update products p

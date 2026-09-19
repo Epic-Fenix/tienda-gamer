@@ -73,7 +73,7 @@ export default function CoverSearch({ query, onSelect }: Props) {
                                             src={r.cover_url}
                                             alt={r.title}
                                             className="w-full h-full object-cover"
-                                            onError={(e) => { (e.currentTarget.parentElement as HTMLElement).innerHTML = '<span class="text-[8px] text-slate-600 flex items-center justify-center h-full p-1 text-center">Sin carátula</span>'; }}
+                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                         />
                                     </div>
                                     {r.release_year && (

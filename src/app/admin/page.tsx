@@ -79,17 +79,26 @@ export default function AdminDashboard() {
     const [invPage, setInvPage] = useState(1);
     const INV_PAGE_SIZE = 10;
 
+    // Allowlist de correos admin (opcional). Vacío = cualquier sesión válida (comportamiento previo).
+    // Definir NEXT_PUBLIC_ADMIN_EMAILS="a@x.com,b@y.com" para restringir el panel.
+    const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+        .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    const isAllowedAdmin = (email?: string | null) =>
+        ADMIN_EMAILS.length === 0 || (!!email && ADMIN_EMAILS.includes(email.toLowerCase()));
+
     // Valida la sesión activa de Supabase Auth al montar y escucha cambios.
     useEffect(() => {
         supabase.auth.getSession().then(({ data }) => {
-            setAuthorized(!!data.session);
-            setAdminEmail(data.session?.user?.email ?? '');
+            const email = data.session?.user?.email ?? '';
+            setAuthorized(!!data.session && isAllowedAdmin(email));
+            setAdminEmail(email);
             setAuthChecked(true);
         });
 
         const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-            setAuthorized(!!session);
-            setAdminEmail(session?.user?.email ?? '');
+            const email = session?.user?.email ?? '';
+            setAuthorized(!!session && isAllowedAdmin(email));
+            setAdminEmail(email);
         });
 
         return () => {
