@@ -20,13 +20,9 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
     useEffect(() => {
         const token = new URLSearchParams(window.location.search).get('t') ?? '';
         const fetchOrder = async () => {
-            // Boleta segura: requiere código + token. Fallback a select directo solo si el RPC no existe aún (pre-migración).
-            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_order', { p_code: code, p_token: token });
-            let orderData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
-            if (rpcErr && token === '') {
-                const { data } = await supabase.from('orders').select('*').eq('order_code', code).single();
-                orderData = data;
-            }
+            // Boleta segura: requiere código + token (RLS bloquea el acceso directo a la tabla).
+            const { data: rpcData } = await supabase.rpc('get_order', { p_code: code, p_token: token });
+            const orderData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
             if (orderData) {
                 setOrder(orderData as Order);
                 if (orderData.product_id) {
