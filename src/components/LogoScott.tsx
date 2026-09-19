@@ -4,7 +4,7 @@ interface Props {
 }
 
 // Logo horizontal de SCOTT GAMES: isotipo (imagen real, fondo negro eliminado
-// con mix-blend screen) + wordmark "SCOTT" blanco / "GAMES" amarillo neón.
+// con mix-blend screen) + wordmark "SCOTT" blanco / "GAMES" cyan.
 export default function LogoScott({ className = '' }: Props) {
     return (
         <span className={`flex items-center gap-2.5 ${className}`}>
@@ -17,7 +17,7 @@ export default function LogoScott({ className = '' }: Props) {
             />
             <span className="leading-none whitespace-nowrap">
                 <span className="font-black text-xl tracking-wider text-white">SCOTT</span>
-                <span className="font-black text-xl tracking-wider text-[#facc15] ml-1">GAMES</span>
+                <span className="font-black text-xl tracking-wider text-[#2dd4bf] ml-1">GAMES</span>
             </span>
         </span>
     );
