@@ -43,6 +43,9 @@ function CopyButton({ value, label }: { value: string; label?: string }) {
 
 export default function PaymentInfo({ orderCode, amount, isFullPayment = false, comprobanteHref }: Props) {
     const whatsappHref = comprobanteHref ?? buildComprobanteWhatsappLink(orderCode, amount, isFullPayment);
+    // Ocultar cuentas bancarias placeholder (no reales).
+    const hasBcp = !!PAYMENT_INFO.bcp && !/0{6,}/.test(PAYMENT_INFO.bcp.replace(/\D/g, ''));
+    const hasIbk = !!PAYMENT_INFO.interbank && PAYMENT_INFO.interbank !== '000-0000000000' && !/0{6,}/.test(PAYMENT_INFO.interbank.replace(/\D/g, ''));
 
     return (
         <div className="text-left">
@@ -83,14 +86,17 @@ export default function PaymentInfo({ orderCode, amount, isFullPayment = false, 
                 <p className="text-[11px] text-slate-500 mt-2">Escanea desde tu app · Titular: <span className="text-slate-300 font-semibold">NORRIS TREJO</span></p>
             </div>
 
-            {/* Transferencia BCP */}
+            {/* Transferencia bancaria: solo si hay cuenta real (oculta placeholders) */}
+            {(hasBcp || hasIbk) && (
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2 text-xs mb-4">
                 <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Transferencia bancaria</p>
+                {hasBcp && (
                 <div className="flex items-center justify-between gap-2">
                     <span className="inline-block px-2 py-0.5 rounded bg-[#0a3d91] text-white text-[10px] font-black">BCP</span>
                     <span className="text-white font-semibold font-mono flex-1 text-right truncate">{PAYMENT_INFO.bcp}</span>
                     <CopyButton value={PAYMENT_INFO.bcp} label="Copiar cuenta" />
                 </div>
+                )}
                 {PAYMENT_INFO.bcpCci && (
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-slate-500">CCI BCP</span>
@@ -98,7 +104,7 @@ export default function PaymentInfo({ orderCode, amount, isFullPayment = false, 
                         <CopyButton value={PAYMENT_INFO.bcpCci} label="Copiar CCI" />
                     </div>
                 )}
-                {PAYMENT_INFO.interbank && PAYMENT_INFO.interbank !== '000-0000000000' && (
+                {hasIbk && (
                     <div className="flex items-center justify-between gap-2">
                         <span className="inline-block px-2 py-0.5 rounded bg-[#009640] text-white text-[10px] font-black">IBK</span>
                         <span className="text-white font-semibold font-mono flex-1 text-right truncate">{PAYMENT_INFO.interbank}</span>
@@ -106,6 +112,7 @@ export default function PaymentInfo({ orderCode, amount, isFullPayment = false, 
                     </div>
                 )}
             </div>
+            )}
 
             <a
                 href={whatsappHref}

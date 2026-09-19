@@ -76,7 +76,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                     <h1 className="text-2xl font-black tracking-wider text-indigo-400">{STORE.name}</h1>
                     <p className="text-[11px] text-slate-400 mt-1">{STORE.address}</p>
                     <p className="text-[11px] text-slate-500">
-                        {STORE.ruc ? `RUC: ${STORE.ruc}` : 'RUC: por configurar'} · Nota de Pedido: <span className="font-mono text-slate-300">{order.order_code}</span>
+                        {STORE.ruc ? <>RUC: {STORE.ruc} · </> : null}Nota de Pedido: <span className="font-mono text-slate-300">{order.order_code}</span>
                     </p>
                 </div>
 
@@ -134,7 +134,8 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                     </div>
                 </div>
 
-                {/* Datos de pago */}
+                {/* Datos de pago: solo si el pedido sigue abierto (no entregado ni cancelado) */}
+                {step < 4 && order.status !== 'cancelled' ? (
                 <div className="bg-slate-950 p-4 rounded-xl mb-5 border border-slate-800/80">
                     <PaymentInfo
                         orderCode={order.order_code}
@@ -152,6 +153,13 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                         })}
                     />
                 </div>
+                ) : (
+                    <div className="bg-slate-950 p-4 rounded-xl mb-5 border border-slate-800/80 text-center">
+                        <p className="text-sm font-bold text-emerald-400">
+                            {order.status === 'cancelled' ? '❌ Pedido cancelado' : '✅ Pedido entregado. ¡Gracias por tu compra!'}
+                        </p>
+                    </div>
+                )}
 
                 {/* Acciones (no se imprimen) */}
                 <div className="no-print flex gap-2">
