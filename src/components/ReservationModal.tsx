@@ -53,7 +53,16 @@ export default function ReservationModal({ product, onClose }: Props) {
             pending_amount: payLater,
             is_full_payment: fullPayment,
             pickup_deadline: deadline.toISOString(),
-            status: 'reserved'
+            status: 'reserved',
+            items: [{
+                product_id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: 1,
+                image_url: product.image_url ?? null,
+                min_reservation_pct: product.min_reservation_pct ?? 0,
+                condition: product.condition ?? null,
+            }],
         });
 
         if (error) {
