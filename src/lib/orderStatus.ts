@@ -8,6 +8,7 @@ export const ORDER_STATUS_OPTIONS: { value: string; label: string }[] = [
     { value: 'preparing', label: 'En preparación' },
     { value: 'ready', label: 'Listo para entrega' },
     { value: 'delivered', label: 'Entregado' },
+    { value: 'cancelled', label: 'Cancelado' },
 ];
 
 // Normaliza cualquier estado guardado a uno de los valores canónicos del selector.
@@ -29,17 +30,24 @@ export function normalizeStatus(status: string | null | undefined): string {
         case 'delivered':
         case 'completed':
             return 'delivered';
+        case 'cancelled':
+        case 'canceled':
+            return 'cancelled';
         default:
             return 'pending';
     }
 }
 
-// Índice de etapa (0-4) para el stepper.
+// Índice de etapa (0-4) para el stepper. Cancelado no es una etapa → -1.
 export function statusToStep(status: string | null | undefined): number {
-    const idx = ORDER_STATUS_OPTIONS.findIndex((o) => o.value === normalizeStatus(status));
+    const n = normalizeStatus(status);
+    if (n === 'cancelled') return -1;
+    const idx = ORDER_STEPS.findIndex((_, i) => ORDER_STATUS_OPTIONS[i]?.value === n);
     return idx < 0 ? 0 : idx;
 }
 
 export function statusLabel(status: string | null | undefined): string {
-    return ORDER_STEPS[statusToStep(status)];
+    if (normalizeStatus(status) === 'cancelled') return 'Cancelado';
+    const step = statusToStep(status);
+    return ORDER_STEPS[step] ?? 'Pendiente';
 }

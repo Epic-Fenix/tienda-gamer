@@ -212,9 +212,11 @@ export default function AdminDashboard() {
         await supabase.from('products').update({ stock: nextStock }).eq('id', id);
     };
 
-    // Registrar venta: baja 1 de stock y suma 1 a unidades vendidas (ganancia realizada).
+    // Registrar venta EN TIENDA FÍSICA: baja 1 de stock y suma 1 a vendidos.
+    // Las ventas por la web (carrito/reserva) ya se descuentan solas; confirmar evita doble conteo.
     const handleSell = async (item: Product) => {
         if ((Number(item.stock) || 0) <= 0) { alert('Sin stock: no puedes registrar la venta.'); return; }
+        if (!window.confirm(`¿Registrar venta EN TIENDA de "${item.name}"?\n\nSolo para ventas presenciales. Las ventas por la web ya descuentan stock automáticamente (no uses esto para pedidos web).`)) return;
         const nextStock = item.stock - 1;
         const nextSold = (Number(item.units_sold) || 0) + 1;
         setProducts((prev) => prev.map((p) => (p.id === item.id ? { ...p, stock: nextStock, units_sold: nextSold } : p)));
@@ -245,11 +247,11 @@ export default function AdminDashboard() {
         // Al cancelar (y no estaba ya cancelada): devolver stock y restar unidades vendidas.
         if (status === 'cancelled' && !wasCancelled && order) {
             const revert = (order.items && order.items.length > 0)
-                ? order.items.map((it) => ({ id: it.product_id, qty: -it.quantity }))
-                : (order.product_id ? [{ id: order.product_id, qty: -1 }] : []);
+                ? order.items.map((it) => ({ id: it.product_id, qty: it.quantity }))
+                : (order.product_id ? [{ id: order.product_id, qty: 1 }] : []);
             if (revert.length > 0) {
-                const { error: rErr } = await supabase.rpc('sell_items', { items: revert });
-                if (rErr) console.error('[sell_items] revertir cancelacion:', rErr.message);
+                const { error: rErr } = await supabase.rpc('restock_items', { items: revert });
+                if (rErr) console.error('[restock_items] revertir cancelacion:', rErr.message);
             }
         }
     };
