@@ -2,7 +2,7 @@
 // Los marcados como REEMPLAZAR son placeholders y deben actualizarse antes de publicar.
 export const PAYMENT_INFO = {
     accountHolder: 'SCOTT GAMES',
-    yapePlinNumber: '937048605',
+    yapePlinNumber: '982330012',
     // Número de WhatsApp al que el cliente envía su comprobante (ventas/checkout).
     whatsapp: '+51 937 048 605',
     whatsappDigits: '51937048605',
