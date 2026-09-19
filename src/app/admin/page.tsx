@@ -244,14 +244,15 @@ export default function AdminDashboard() {
             fetchData();
             return;
         }
-        // Al cancelar (y no estaba ya cancelada): devolver stock y restar unidades vendidas.
+        // Al cancelar (y no estaba ya cancelada): devolver el stock reservado.
+        // La ganancia no se toca: solo cuenta pedidos ENTREGADOS (KPI en vivo).
         if (status === 'cancelled' && !wasCancelled && order) {
             const revert = (order.items && order.items.length > 0)
                 ? order.items.map((it) => ({ id: it.product_id, qty: it.quantity }))
                 : (order.product_id ? [{ id: order.product_id, qty: 1 }] : []);
             if (revert.length > 0) {
-                const { error: rErr } = await supabase.rpc('restock_items', { items: revert });
-                if (rErr) console.error('[restock_items] revertir cancelacion:', rErr.message);
+                const { error: rErr } = await supabase.rpc('release_stock', { items: revert });
+                if (rErr) console.error('[release_stock] revertir cancelacion:', rErr.message);
             }
         }
     };
@@ -411,8 +412,9 @@ export default function AdminDashboard() {
     const kpis = useMemo(() => {
         const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
         const inventoryValue = products.reduce((sum, p) => sum + (Number(p.stock) || 0) * (Number(p.price) || 0), 0);
+        // Dinero por cobrar: pedidos aún abiertos (ni entregados ni cancelados).
         const pendingRevenue = orders
-            .filter((o) => o.status === 'reserved')
+            .filter((o) => { const n = normalizeStatus(o.status); return n !== 'delivered' && n !== 'cancelled'; })
             .reduce((sum, o) => sum + (Number(o.pending_amount) || 0), 0);
         const waitingClients = backorders.filter((b) => b.status === 'pending').length;
         // Ganancia bruta proyectada: (precio - costo) por unidad en stock.
@@ -420,16 +422,29 @@ export default function AdminDashboard() {
             (sum, p) => sum + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.stock) || 0),
             0
         );
-        // Ganancia realizada: (precio - costo) por unidad ya vendida.
-        const realizedProfit = products.reduce(
-            (sum, p) => sum + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.units_sold) || 0),
-            0
-        );
-        const unitsSold = products.reduce((sum, p) => sum + (Number(p.units_sold) || 0), 0);
-        // Ganancia total = realizada + proyectada. No baja al vender (la ganancia solo se mueve de "potencial" a "ganada").
+        // Ganancia realizada = pedidos ENTREGADOS (con costo snapshot del item; fallback costo actual)
+        //                     + ventas en tienda física (products.units_sold, costo actual).
+        const costById = new Map(products.map((p) => [p.id, Number(p.cost_price) || 0]));
+        let webProfit = 0, webUnits = 0;
+        for (const o of orders) {
+            if (normalizeStatus(o.status) !== 'delivered') continue;
+            const its = Array.isArray(o.items) ? o.items : [];
+            for (const it of its) {
+                const cost = it.cost != null ? Number(it.cost) : (costById.get(it.product_id) ?? 0);
+                webProfit += ((Number(it.price) || 0) - cost) * (Number(it.quantity) || 0);
+                webUnits += Number(it.quantity) || 0;
+            }
+        }
+        const physicalProfit = products.reduce((s, p) => s + ((Number(p.price) || 0) - (Number(p.cost_price) || 0)) * (Number(p.units_sold) || 0), 0);
+        const physicalUnits = products.reduce((s, p) => s + (Number(p.units_sold) || 0), 0);
+        const realizedProfit = webProfit + physicalProfit;
+        const unitsSold = webUnits + physicalUnits;
+        // Ganancia total = realizada + proyectada (potencial del stock).
         const totalProfit = realizedProfit + projectedProfit;
-        // Ventas acumuladas: dinero total facturado por unidades vendidas.
-        const salesRevenue = products.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.units_sold) || 0), 0);
+        // Ventas acumuladas (facturado): entregados + físicas.
+        const webRevenue = orders.reduce((s, o) => normalizeStatus(o.status) === 'delivered'
+            ? s + (Array.isArray(o.items) ? o.items.reduce((a, it) => a + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0) : 0) : s, 0);
+        const salesRevenue = webRevenue + products.reduce((s, p) => s + (Number(p.price) || 0) * (Number(p.units_sold) || 0), 0);
         // Inversión en stock: costo de la mercadería que tienes hoy en almacén.
         const stockInvestment = products.reduce((sum, p) => sum + (Number(p.cost_price) || 0) * (Number(p.stock) || 0), 0);
         return { totalStock, inventoryValue, pendingRevenue, waitingClients, projectedProfit, realizedProfit, unitsSold, totalProfit, salesRevenue, stockInvestment };

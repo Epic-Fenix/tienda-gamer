@@ -147,6 +147,7 @@ export default function CartDrawer() {
             product_id: i.product_id,
             name: i.name,
             price: i.price,
+            cost: i.cost ?? 0,
             quantity: i.quantity,
             image_url: i.image_url ?? null,
             min_reservation_pct: i.min_reservation_pct ?? 0,
@@ -179,18 +180,11 @@ export default function CartDrawer() {
             return;
         }
 
-        // Descuento atómico de stock (+ unidades vendidas) en un solo UPDATE (evita sobreventa).
-        const { error: sellError } = await supabase.rpc('sell_items', {
+        // Reserva de stock (la VENTA se cuenta al marcar "Entregado" en el panel).
+        const { error: sellError } = await supabase.rpc('reserve_stock', {
             items: items.map((it) => ({ id: it.product_id, qty: it.quantity })),
         });
-        if (sellError) {
-            // Fallback no atómico si el RPC no está creado aún (correr add_sell_items_rpc.sql).
-            console.error('[sell_items] carrito, usando fallback:', sellError.message);
-            for (const it of items) {
-                const { data } = await supabase.from('products').select('stock, units_sold').eq('id', it.product_id).single();
-                await supabase.from('products').update({ stock: Math.max(0, (Number(data?.stock) || 0) - it.quantity), units_sold: (Number(data?.units_sold) || 0) + it.quantity }).eq('id', it.product_id);
-            }
-        }
+        if (sellError) console.error('[reserve_stock] carrito:', sellError.message);
 
         // Registra el uso del cupón vía RPC segura; fallback a update directo si no existe aún.
         if (appliedCoupon) {

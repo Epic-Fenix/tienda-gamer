@@ -30,6 +30,7 @@ export interface OrderItem {
     product_id: string;
     name: string;
     price: number;
+    cost?: number; // Snapshot del costo al momento de la venta (para ganancia histórica)
     quantity: number;
     image_url?: string | null;
     min_reservation_pct?: number;

@@ -62,6 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     product_id: product.id,
                     name: product.name,
                     price: Number(product.price) || 0,
+                    cost: Number(product.cost_price) || 0,
                     quantity: qty,
                     image_url: product.image_url ?? null,
                     min_reservation_pct: Number(product.min_reservation_pct) || 0,
