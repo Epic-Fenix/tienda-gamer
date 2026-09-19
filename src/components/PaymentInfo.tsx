@@ -70,6 +70,19 @@ export default function PaymentInfo({ orderCode, amount, isFullPayment = false, 
                 </p>
             </div>
 
+            {/* QR Plin */}
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 mb-2 text-center">
+                <span className="inline-block px-2 py-0.5 rounded bg-[#00bcd4] text-white text-[10px] font-black mb-2">PAGAR CON PLIN (QR)</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src="/plin-qr.png"
+                    alt="QR Plin - NORRIS TREJO"
+                    className="w-40 h-auto mx-auto rounded-lg bg-white"
+                    onError={(e) => { const p = (e.currentTarget.parentElement as HTMLElement); if (p) p.style.display = 'none'; }}
+                />
+                <p className="text-[11px] text-slate-500 mt-2">Escanea desde tu app · Titular: <span className="text-slate-300 font-semibold">NORRIS TREJO</span></p>
+            </div>
+
             {/* Transferencia BCP */}
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2 text-xs mb-4">
                 <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Transferencia bancaria</p>
