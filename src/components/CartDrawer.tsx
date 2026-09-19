@@ -34,6 +34,8 @@ export default function CartDrawer() {
     const [deliveryType, setDeliveryType] = useState<DeliveryValue>('feria_grau');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
+    // Paso del checkout: 'cart' (revisar) → 'checkout' (datos y pago).
+    const [step, setStep] = useState<'cart' | 'checkout'>('cart');
 
     // Cupón de descuento
     const [couponCode, setCouponCode] = useState('');
@@ -221,9 +223,13 @@ export default function CartDrawer() {
         setEmail('');
         setFullPayment(false);
         setDeliveryType('feria_grau');
+        setStep('cart');
         removeCoupon();
         closeCart();
     };
+
+    // Cierra el carrito y vuelve al primer paso.
+    const handleCloseCart = () => { setStep('cart'); closeCart(); };
 
     return (
         <>
@@ -247,15 +253,28 @@ export default function CartDrawer() {
             {/* Overlay + Drawer */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={success ? undefined : closeCart} />
-                    <aside className="relative w-full max-w-md h-[100dvh] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col justify-between">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={success ? undefined : handleCloseCart} />
+                    <aside className="relative w-full max-w-lg h-[100dvh] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 border-b border-slate-800 flex-shrink-0">
-                            <h2 className="text-lg font-black text-white">
-                                {success ? '¡Reserva Confirmada!' : 'Tu Carrito'}
-                            </h2>
-                            <button onClick={success ? handleCloseSuccess : closeCart} className="text-slate-400 hover:text-white text-2xl leading-none" aria-label="Cerrar">×</button>
+                            <div className="flex items-center gap-2">
+                                {!success && step === 'checkout' && (
+                                    <button onClick={() => setStep('cart')} className="text-slate-400 hover:text-white text-xl leading-none -ml-1 pr-1" aria-label="Volver">←</button>
+                                )}
+                                <h2 className="text-lg font-black text-white">
+                                    {success ? '¡Reserva Confirmada!' : step === 'checkout' ? 'Finalizar compra' : 'Tu Carrito'}
+                                </h2>
+                            </div>
+                            <button onClick={success ? handleCloseSuccess : handleCloseCart} className="text-slate-400 hover:text-white text-2xl leading-none" aria-label="Cerrar">×</button>
                         </div>
+                        {/* Indicador de pasos */}
+                        {!success && items.length > 0 && (
+                            <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-800 flex-shrink-0 text-[11px] font-bold">
+                                <span className={step === 'cart' ? 'text-indigo-400' : 'text-slate-500'}>1. Carrito</span>
+                                <span className="flex-1 h-px bg-slate-800" />
+                                <span className={step === 'checkout' ? 'text-indigo-400' : 'text-slate-500'}>2. Datos y pago</span>
+                            </div>
+                        )}
 
                         {/* Contenido */}
                         {success ? (
@@ -299,9 +318,9 @@ export default function CartDrawer() {
                                 <p className="text-sm">Tu carrito está vacío.</p>
                                 <button onClick={closeCart} className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">Ver catálogo</button>
                             </div>
-                        ) : (
+                        ) : step === 'cart' ? (
                             <>
-                                <div className="flex-1 min-h-[220px] max-h-[40vh] overflow-y-auto space-y-3 p-3">
+                                <div className="flex-1 overflow-y-auto space-y-3 p-4">
                                     {items.map((it) => (
                                         <div key={it.product_id} className="flex gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3">
                                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center shrink-0 border border-slate-800">
@@ -328,8 +347,8 @@ export default function CartDrawer() {
                                     ))}
                                 </div>
 
-                                {/* Totales + formulario */}
-                                <div className="border-t border-slate-800 p-5 space-y-3 flex-shrink-0">
+                                {/* Footer del carrito: envío gratis + subtotal + continuar */}
+                                <div className="border-t border-slate-800 p-4 space-y-3 flex-shrink-0">
                                     {/* Barra de progreso hacia envío gratis (umbral S/. 300) */}
                                     {(() => {
                                         const THRESHOLD = 300;
@@ -349,7 +368,17 @@ export default function CartDrawer() {
                                             </div>
                                         );
                                     })()}
-
+                                    <div className="flex justify-between text-sm pt-1">
+                                        <span className="text-slate-400">Subtotal ({count} art.)</span>
+                                        <span className="font-black text-white">S/. {formatSoles(total)}</span>
+                                    </div>
+                                    <button type="button" onClick={() => setStep('checkout')} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-black transition">
+                                        Continuar al pago →
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                                     {/* Selector de modalidad de pago */}
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Modalidad de pago</p>
@@ -464,8 +493,7 @@ export default function CartDrawer() {
                                             {loading ? 'Generando...' : 'Confirmar Reserva del Carrito'}
                                         </button>
                                     </form>
-                                </div>
-                            </>
+                            </div>
                         )}
                     </aside>
                 </div>
