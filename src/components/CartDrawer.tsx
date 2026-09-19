@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink } from '@/lib/payment';
+import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink, IZIPAY } from '@/lib/payment';
 import { notifyOrderByEmail } from '@/lib/notify';
 import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, DeliveryValue } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
@@ -36,6 +36,9 @@ export default function CartDrawer() {
     const [success, setSuccess] = useState<SuccessOrder | null>(null);
     // Paso del checkout: 'cart' (revisar) → 'checkout' (datos y pago).
     const [step, setStep] = useState<'cart' | 'checkout'>('cart');
+    // Pago con tarjeta (Izipay / demo).
+    const [cardOpen, setCardOpen] = useState(false);
+    const [payingCard, setPayingCard] = useState(false);
 
     // Cupón de descuento
     const [couponCode, setCouponCode] = useState('');
@@ -122,9 +125,9 @@ export default function CartDrawer() {
         setCouponMsg(null);
     };
 
-    const handleConfirm = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const submitOrder = async (forceFull = false) => {
         if (items.length === 0) return;
+        const payFull = forceFull || fullPayment;
         setLoading(true);
 
         const orderCode = `SCOTT-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -133,7 +136,7 @@ export default function CartDrawer() {
 
         // El total del pedido incluye el costo de envío aplicado.
         const totalAmount = round2(netTotal + shipping);
-        const reservation = fullPayment ? totalAmount : round2(Math.min(reservationTotal, netTotal));
+        const reservation = payFull ? totalAmount : round2(Math.min(reservationTotal, netTotal));
         const pending = round2(totalAmount - reservation);
 
         // Ítems que se guardan como JSON en la orden (sin el campo interno `stock`).
@@ -159,7 +162,7 @@ export default function CartDrawer() {
             pending_amount: pending,
             pickup_deadline: deadline.toISOString(),
             status: 'reserved',
-            is_full_payment: fullPayment,
+            is_full_payment: payFull,
             coupon_code: appliedCoupon?.code ?? null,
             discount_amount: round2(discount),
             items: orderItems,
@@ -198,14 +201,14 @@ export default function CartDrawer() {
             total: totalAmount,
             paid: reservation,
             pending,
-            isFullPayment: fullPayment,
+            isFullPayment: payFull,
         });
 
         setSuccess({
             code: orderCode,
             reservation,
             pending,
-            isFull: fullPayment,
+            isFull: payFull,
             total: totalAmount,
             name,
             phone,
@@ -213,6 +216,18 @@ export default function CartDrawer() {
             items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price, condition: i.condition ?? null })),
         });
         setLoading(false);
+    };
+
+    const handleConfirm = (e: React.FormEvent) => { e.preventDefault(); submitOrder(); };
+
+    // Pago con tarjeta: real si Izipay está configurado; si no, demo que crea la reserva (pago total).
+    const handleCardPay = async () => {
+        if (name.trim() === '' || phone.trim() === '') { alert('Completa nombre y WhatsApp para pagar.'); return; }
+        setPayingCard(true);
+        await new Promise((r) => setTimeout(r, 1400)); // simula el procesamiento
+        setPayingCard(false);
+        setCardOpen(false);
+        await submitOrder(true);
     };
 
     const handleCloseSuccess = () => {
@@ -483,6 +498,30 @@ export default function CartDrawer() {
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.599 5.35l-.999 3.648 3.9-.297zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
                                         Finalizar Pedido por WhatsApp
                                     </a>
+
+                                    {/* Pago con tarjeta (Izipay / demo) */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setCardOpen((v) => !v)}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm font-black transition"
+                                    >
+                                        💳 Pagar con tarjeta {IZIPAY.enabled ? '' : '(demo)'}
+                                    </button>
+                                    {cardOpen && (
+                                        <div className="rounded-xl border border-cyan-500/30 bg-slate-950 p-3 space-y-2">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">Tarjeta de crédito / débito {IZIPAY.enabled ? '' : '· modo demo'}</p>
+                                            <input inputMode="numeric" placeholder="Número de tarjeta" className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500" />
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <input placeholder="MM/AA" className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500" />
+                                                <input inputMode="numeric" placeholder="CVV" className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500" />
+                                            </div>
+                                            <button type="button" onClick={handleCardPay} disabled={payingCard} className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm font-black transition disabled:opacity-50">
+                                                {payingCard ? 'Procesando pago...' : `Pagar S/. ${formatSoles(finalTotal)}`}
+                                            </button>
+                                            {!IZIPAY.enabled && <p className="text-[10px] text-slate-500 text-center">Demo: crea la reserva pagada. Con Izipay activo procesa el cobro real.</p>}
+                                        </div>
+                                    )}
+
                                     <p className="text-center text-[10px] text-slate-500">o genera tu reserva con QR y datos de pago ↓</p>
 
                                     <form onSubmit={handleConfirm} className="space-y-2">
