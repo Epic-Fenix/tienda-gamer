@@ -14,6 +14,17 @@ export const PAYMENT_INFO = {
     interbankCci: '', // Opcional: CCI interbancario de Interbank
 };
 
+// =====================================================================
+// Izipay (pasarela de tarjeta) — preparado, se activa al cargar las llaves.
+// Frontend usa NEXT_PUBLIC_*; el secreto vive solo en el servidor (API route).
+// enabled = true solo cuando existe la llave pública.
+// =====================================================================
+export const IZIPAY = {
+    enabled: (process.env.NEXT_PUBLIC_IZIPAY_PUBLIC_KEY || '').trim() !== '',
+    publicKey: process.env.NEXT_PUBLIC_IZIPAY_PUBLIC_KEY || '',
+    currency: 'PEN',
+};
+
 // Formatea un monto en soles.
 export const formatSoles = (n: number) =>
     n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
