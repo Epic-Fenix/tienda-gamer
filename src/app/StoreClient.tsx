@@ -46,7 +46,6 @@ const PROMO_SLIDES: Slide[] = [
     title: '¿Buscas un juego? Nosotros lo buscamos por ti',
     subtitle: 'Dinos qué título quieres y lo conseguimos. Escríbenos y te lo traemos.',
     gradient: 'from-[#134e4a] via-[#0e7490] to-[#2563eb]',
-    image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200',
     badge: '🔎 Te lo buscamos',
     action: 'buscar',
     primaryLabel: '🔎 Buscar mi juego',
@@ -87,7 +86,7 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
 ];
 
-const GENRES = ['Acción', 'Aventura', 'Shooter', 'Deportes', 'Carreras', 'Lucha', 'Terror', 'Estrategia', 'Familiar'];
+const GENRES = ['Acción', 'Aventura', 'Shooter', 'Carreras', 'Lucha', 'Terror'];
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
