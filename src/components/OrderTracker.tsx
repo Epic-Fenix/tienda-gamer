@@ -153,14 +153,20 @@ export default function OrderTracker() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-white p-1.5 rounded-lg shrink-0">
-                                                <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={64} />
+                                        {order.access_token ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-white p-1.5 rounded-lg shrink-0">
+                                                    <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={64} />
+                                                </div>
+                                                <a href={`/order/${order.order_code}?t=${order.access_token}`} className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
+                                                    Ver boleta y datos de pago
+                                                </a>
                                             </div>
-                                            <a href={`/order/${order.order_code}${order.access_token ? `?t=${order.access_token}` : ''}`} className="flex-1 text-center py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
-                                                Ver boleta y datos de pago
-                                            </a>
-                                        </div>
+                                        ) : (
+                                            <p className="text-[11px] text-slate-500 text-center border-t border-slate-800 pt-2">
+                                                Para abrir la boleta completa, busca con tu <span className="text-slate-300 font-semibold">código de pedido</span> (SCOTT-…).
+                                            </p>
+                                        )}
                                     </div>
                                 );
                             })}
