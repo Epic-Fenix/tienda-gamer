@@ -46,7 +46,7 @@ const PROMO_SLIDES: Slide[] = [
     title: '¿Buscas un juego? Nosotros lo buscamos por ti',
     subtitle: 'Dinos qué título quieres y lo conseguimos. Escríbenos y te lo traemos.',
     gradient: 'from-[#134e4a] via-[#0e7490] to-[#2563eb]',
-    image_url: '/banner-buscar.svg',
+    image_url: '/banner-buscar.png',
     badge: '🔎 Te lo buscamos',
     action: 'buscar',
     primaryLabel: '🔎 Buscar mi juego',
@@ -342,7 +342,7 @@ export default function Home() {
                       src={b.image_url}
                       alt={b.title}
                       onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      className={`absolute inset-0 w-full h-full ${b.action === 'buscar' ? 'object-contain object-right' : 'object-cover object-center'}`}
                     />
                   )}
                   {/* Degradé para legibilidad del texto (oscuro a la izquierda, revela la imagen a la derecha) */}
