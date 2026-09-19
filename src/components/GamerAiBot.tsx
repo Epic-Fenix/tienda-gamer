@@ -27,7 +27,7 @@ const SUGGESTIONS = ['¿Tienen PS5?', '¿Cómo funciona el trueque?', '¿Tienen 
 
 const WELCOME: Msg = {
     role: 'assistant',
-    content: '¡Hola! 👋 Soy el Asistente SCOTT. Pregúntame por precios, disponibilidad, envío gratis, trueque o cómo llegar a la tienda. ¿En qué te ayudo?',
+    content: '¡Hola, player! 🎮 Soy Scotty Bot, tu compañero gamer. Pregúntame por precios, disponibilidad, envío gratis, trueque o cómo llegar a la tienda. ¿En qué te ayudo?',
 };
 
 export default function GamerAiBot() {
@@ -77,8 +77,8 @@ export default function GamerAiBot() {
                 aria-label="Asistente Gamer"
                 className="fixed bottom-6 right-24 z-40 flex items-center gap-2 h-14 pl-3 pr-4 rounded-full bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white shadow-2xl shadow-fuchsia-900/40 transition"
             >
-                <span className="text-xl">🤖</span>
-                <span className="hidden sm:block text-xs font-black leading-tight text-left">Asistente<br />SCOTT</span>
+                <span className="text-xl">🎮</span>
+                <span className="hidden sm:block text-xs font-black leading-tight text-left font-gamer">Scotty<br />Bot</span>
             </button>
 
             {open && (
@@ -86,9 +86,9 @@ export default function GamerAiBot() {
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-fuchsia-600 to-indigo-600">
                         <div className="flex items-center gap-2">
-                            <span className="text-xl">🤖</span>
+                            <span className="text-xl">🎮</span>
                             <div>
-                                <p className="text-sm font-black text-white leading-none">Asistente SCOTT</p>
+                                <p className="text-sm font-black text-white leading-none font-gamer">Scotty Bot</p>
                                 <p className="text-[10px] text-white/80 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> En línea</p>
                             </div>
                         </div>

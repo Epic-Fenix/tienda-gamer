@@ -73,7 +73,7 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
             <div className="boleta bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl my-6">
                 {/* Encabezado corporativo */}
                 <div className="text-center border-b border-slate-800 pb-4 mb-4">
-                    <h1 className="text-2xl font-black tracking-wider text-indigo-400">{STORE.name}</h1>
+                    <h1 className="font-gamer text-2xl font-black tracking-wider text-indigo-400">{STORE.name}</h1>
                     <p className="text-[11px] text-slate-400 mt-1">{STORE.address}</p>
                     <p className="text-[11px] text-slate-500">
                         {STORE.ruc ? <>RUC: {STORE.ruc} · </> : null}Nota de Pedido: <span className="font-mono text-slate-300">{order.order_code}</span>
@@ -90,10 +90,11 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
                     </span>
                 </div>
 
-                {/* QR */}
-                <div className="qr-box bg-white p-4 rounded-xl w-max mx-auto mb-5">
+                {/* QR: mostrar en tienda para verificar/recoger el pedido */}
+                <div className="qr-box bg-white p-4 rounded-xl w-max mx-auto mb-2">
                     <QRCodeSVG value={orderUrl(order.order_code, order.access_token)} size={150} />
                 </div>
+                <p className="text-center text-[11px] text-slate-500 mb-5">📲 Muestra este QR en tienda para recoger o verificar tu pedido</p>
 
                 {/* Detalle de productos */}
                 <div className="bg-slate-950 rounded-xl border border-slate-800/80 p-4 text-xs mb-4">
