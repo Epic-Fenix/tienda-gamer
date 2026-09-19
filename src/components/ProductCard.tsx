@@ -16,7 +16,8 @@ interface Props {
 export function platformStyle(platform?: string): string {
     const s = (platform || '').toLowerCase();
     if (s.includes('ps5')) return 'bg-white text-black border border-gray-300';
-    if (s.includes('ps4') || s.includes('ps3') || s.includes('ps2') || s.includes('playstation')) return 'bg-[#00439C] text-white border border-white/20';
+    if (s.includes('ps3')) return 'bg-black text-white border border-white/20';
+    if (s.includes('ps4') || s.includes('ps2') || s.includes('playstation')) return 'bg-[#00439C] text-white border border-white/20';
     if (s.includes('xbox')) return 'bg-[#107C10] text-white border border-white/20';
     if (s.includes('switch') || s.includes('nintendo')) return 'bg-[#E60012] text-white border border-white/20';
     return 'bg-violet-600 text-white border border-white/20';
@@ -83,6 +84,7 @@ export function productKind(product: Product): { icon: string; label: string } {
 
 // ¿Es una "Joya Épica"? (juego raro, coleccionable o de alta demanda).
 export function isEpic(product: Product): boolean {
+    if (product.is_epic === true) return true;
     const t = `${product.category ?? ''} ${product.name ?? ''}`.toLowerCase();
     return /joya|épic|epic|oculta/.test(t);
 }

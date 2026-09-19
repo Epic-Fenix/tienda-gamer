@@ -13,6 +13,7 @@ export interface Product {
     old_price?: number | null; // Precio anterior para mostrar descuento (opcional)
     stock: number;
     units_sold?: number; // Unidades vendidas acumuladas (para ganancia realizada)
+    is_epic?: boolean;   // Marcado manualmente como "Joya Épica" (badge + filtro)
     allow_reservation: boolean;
     min_reservation_pct: number;
     image_url?: string | null;

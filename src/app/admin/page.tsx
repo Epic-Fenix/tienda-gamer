@@ -55,12 +55,13 @@ export default function AdminDashboard() {
     const [condition, setCondition] = useState('nuevo');
     const [minPct, setMinPct] = useState('20');
     const [imageUrl, setImageUrl] = useState('');
+    const [isEpic, setIsEpic] = useState(false);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
 
     // Edición / eliminación de productos
     const [editProduct, setEditProduct] = useState<Product | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '', genre: '', discs: '' });
+    const [editForm, setEditForm] = useState({ name: '', price: '', cost_price: '', old_price: '', stock: '', description: '', image_url: '', condition: 'nuevo', platform: '', category: '', genre: '', discs: '', is_epic: false });
 
     // Etiqueta de envío
     const [packingOrder, setPackingOrder] = useState<Order | null>(null);
@@ -292,7 +293,8 @@ export default function AdminDashboard() {
             min_reservation_pct: Number(minPct),
             image_url: imageUrl.trim() !== '' ? imageUrl.trim() : null,
             allow_reservation: true,
-            condition
+            condition,
+            is_epic: isEpic
         }).select().single();
 
         if (error) {
@@ -307,6 +309,7 @@ export default function AdminDashboard() {
             setStock('');
             setImageUrl('');
             setCondition('nuevo');
+            setIsEpic(false);
         }
         setSaving(false);
     };
@@ -326,6 +329,7 @@ export default function AdminDashboard() {
             category: p.category || '',
             genre: p.genre || '',
             discs: p.discs != null ? String(p.discs) : '',
+            is_epic: p.is_epic ?? false,
         });
     };
 
@@ -347,13 +351,14 @@ export default function AdminDashboard() {
             category: editForm.category.trim() !== '' ? editForm.category.trim() : null,
             genre: editForm.genre.trim() !== '' ? editForm.genre.trim() : null,
             discs: editForm.discs.trim() !== '' ? Number(editForm.discs) : null,
+            is_epic: editForm.is_epic,
         };
 
         // Optimistic UI
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === editProduct.id
-                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition, platform: updates.platform ?? p.platform, category: updates.category ?? p.category, genre: updates.genre ?? p.genre, discs: updates.discs ?? p.discs }
+                    ? { ...p, name: updates.name, price: updates.price, cost_price: updates.cost_price, old_price: updates.old_price, stock: updates.stock, description: updates.description ?? undefined, image_url: updates.image_url, condition: updates.condition, platform: updates.platform ?? p.platform, category: updates.category ?? p.category, genre: updates.genre ?? p.genre, discs: updates.discs ?? p.discs, is_epic: updates.is_epic }
                     : p
             )
         );
@@ -1037,6 +1042,10 @@ export default function AdminDashboard() {
                                     <input required type="number" value={minPct} onChange={(e) => setMinPct(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
                                 </div>
                             </div>
+                            <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                                <input type="checkbox" checked={isEpic} onChange={(e) => setIsEpic(e.target.checked)} className="w-4 h-4 accent-fuchsia-500" />
+                                <span className="text-sm text-fuchsia-300 font-semibold">💎 Marcar como Joya Épica</span>
+                            </label>
                             <div className="flex gap-2 pt-4">
                                 <button type="button" onClick={() => setShowModal(false)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition">Cancelar</button>
                                 <button type="submit" disabled={saving || uploading} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">
@@ -1152,6 +1161,10 @@ export default function AdminDashboard() {
                                     <input required type="number" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white" />
                                 </div>
                             </div>
+                            <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                                <input type="checkbox" checked={editForm.is_epic} onChange={(e) => setEditForm({ ...editForm, is_epic: e.target.checked })} className="w-4 h-4 accent-fuchsia-500" />
+                                <span className="text-sm text-fuchsia-300 font-semibold">💎 Marcar como Joya Épica</span>
+                            </label>
                             <div className="flex gap-2 pt-4">
                                 <button type="button" onClick={() => setEditProduct(null)} className="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition">Cancelar</button>
                                 <button type="submit" disabled={saving || uploading} className="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition disabled:opacity-50">

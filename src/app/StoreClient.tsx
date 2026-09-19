@@ -12,6 +12,7 @@ import CartDrawer from '@/components/CartDrawer';
 import SocialProofToasts from '@/components/SocialProofToasts';
 import OrderTracker from '@/components/OrderTracker';
 import TradeInModal from '@/components/TradeInModal';
+import GameRequestModal from '@/components/GameRequestModal';
 import ProductCard from '@/components/ProductCard';
 import ProductQuickView from '@/components/ProductQuickView';
 import LogoScott from '@/components/LogoScott';
@@ -81,7 +82,7 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'xbox', label: 'Xbox', icon: '🟩', match: (p) => /xbox/.test(catText(p)) },
   { key: 'consolas', label: 'Consolas & Accesorios', icon: '🕹️', match: (p) => /consola|accesori|mando|control|auricular|audíf/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'coleccionables', label: 'Coleccionables', icon: '🧸', match: (p) => /anime|colec|figura|funko|peluche/.test(`${p.category} ${p.name}`.toLowerCase()) },
-  { key: 'joyas', label: 'Joyas Épicas', icon: '💎', match: (p) => /joya|épic|epic|oculta/.test(`${p.category} ${p.name}`.toLowerCase()) },
+  { key: 'joyas', label: 'Joyas Épicas', icon: '💎', match: (p) => p.is_epic === true || /joya|épic|epic|oculta/.test(`${p.category} ${p.name}`.toLowerCase()) },
   { key: 'seminuevos', label: 'Seminuevos', icon: '🏷️', match: (p) => p.condition === 'segunda_mano' },
 ];
 
@@ -108,6 +109,7 @@ export default function Home() {
   const [backorderProduct, setBackorderProduct] = useState<Product | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [tradeInOpen, setTradeInOpen] = useState(false);
+  const [gameRequestOpen, setGameRequestOpen] = useState(false);
 
   const [slide, setSlide] = useState(0);
   const [slides, setSlides] = useState<Slide[]>([...DEFAULT_SLIDES, ...PROMO_SLIDES]);
@@ -163,11 +165,7 @@ export default function Home() {
   // Acción del botón principal del hero según el tipo de slide.
   const heroPrimary = (b: Slide) => {
     if (b.action === 'trueque') { setTradeInOpen(true); return; }
-    if (b.action === 'buscar') {
-      const msg = encodeURIComponent('¡Hola SCOTT GAMES! Estoy buscando un juego que no encuentro en la tienda. ¿Me ayudan a conseguirlo? El juego es: ');
-      window.open(`https://wa.me/${CONTACT.whatsappSalesDigits}?text=${msg}`, '_blank', 'noopener');
-      return;
-    }
+    if (b.action === 'buscar') { setGameRequestOpen(true); return; }
     if (b.action === 'catalog') { handleHeroCta(undefined); return; }
     handleHeroCta(b.targetSlug);
   };
@@ -539,6 +537,7 @@ export default function Home() {
       {selectedProduct && <ReservationModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
       {backorderProduct && <BackorderModal product={backorderProduct} onClose={() => setBackorderProduct(null)} />}
       {tradeInOpen && <TradeInModal onClose={() => setTradeInOpen(false)} />}
+      {gameRequestOpen && <GameRequestModal onClose={() => setGameRequestOpen(false)} />}
 
       <CartDrawer />
       <SocialProofToasts />
