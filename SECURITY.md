@@ -1,8 +1,9 @@
 # Seguridad — tienda-gamer
 
-Estado: auditoría + hardening inicial aplicado. La parte crítica (RLS) requiere aplicar
-`security_rls.sql` en Supabase + adoptar 3 RPCs en el código (§3). **No aplicado aún** por
-riesgo de romper producción; hacerlo deliberadamente y probar.
+Estado: **RLS + token de boleta APLICADOS** en Supabase (`security_rls.sql`, `add_order_token.sql`,
+`add_sell_items_rpc.sql`) y RPCs adoptadas en el código; signup desactivado; allowlist admin activa.
+Quedan pendientes de endurecimiento los ítems de `AUDITORIA.md` §A (sell_items clamp, search_orders,
+Storage policies, rate-limit, is_admin, headers). Ver ese archivo para el roadmap.
 
 ## 1. Riesgos por severidad
 
