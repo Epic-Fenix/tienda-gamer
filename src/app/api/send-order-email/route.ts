@@ -28,6 +28,10 @@ interface OrderEmailPayload {
 
 const soles = (n: number) => formatSoles(Number(n) || 0);
 
+// Escapa HTML para evitar inyección con datos del cliente en el correo.
+const esc = (s?: string | null) =>
+    String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
 const shortCondition = (c?: string | null) => (c === 'segunda_mano' ? 'Seminuevo' : c ? 'Nuevo' : '');
 
 function buildEmailHtml(o: OrderEmailPayload): string {
@@ -39,7 +43,7 @@ function buildEmailHtml(o: OrderEmailPayload): string {
                 : '';
             return `<tr>
                 <td style="padding:8px 10px;border-bottom:1px solid #2a1352;color:#e9e2ff;font-size:13px;">
-                    ${it.quantity}× ${it.name}${tag}
+                    ${it.quantity}× ${esc(it.name)}${tag}
                 </td>
                 <td style="padding:8px 10px;border-bottom:1px solid #2a1352;color:#ffffff;font-size:13px;font-weight:700;text-align:right;white-space:nowrap;">
                     S/. ${soles(it.price * it.quantity)}
@@ -75,9 +79,9 @@ function buildEmailHtml(o: OrderEmailPayload): string {
           <td style="padding:8px 24px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1e0d3b;border:1px solid #3e1b75;border-radius:12px;">
               <tr><td style="padding:12px 14px;color:#c4b5fd;font-size:13px;">
-                <strong style="color:#ffffff;">Cliente:</strong> ${o.customerName || '—'}<br/>
-                <strong style="color:#ffffff;">Celular:</strong> ${o.customerPhone || '—'}${o.customerEmail ? `<br/><strong style="color:#ffffff;">Correo:</strong> ${o.customerEmail}` : ''}<br/>
-                <strong style="color:#ffffff;">Entrega:</strong> ${o.deliveryLabel}
+                <strong style="color:#ffffff;">Cliente:</strong> ${esc(o.customerName) || '—'}<br/>
+                <strong style="color:#ffffff;">Celular:</strong> ${esc(o.customerPhone) || '—'}${o.customerEmail ? `<br/><strong style="color:#ffffff;">Correo:</strong> ${esc(o.customerEmail)}` : ''}<br/>
+                <strong style="color:#ffffff;">Entrega:</strong> ${esc(o.deliveryLabel)}
               </td></tr>
             </table>
           </td>

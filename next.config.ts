@@ -6,8 +6,12 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   // Impide que el navegador "adivine" tipos MIME.
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // Controla cuánta info de referrer se envía a otros orígenes.
-  { key: "Referrer-Policy", value: "origin-when-cross-origin" },
+  // Solo envía el origen (no la ruta/query) a otros sitios → protege el ?t= de la boleta.
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Fuerza HTTPS en el navegador (2 años, subdominios, preload).
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  // Desactiva APIs sensibles del navegador que la tienda no usa.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
 ];
 
 const nextConfig: NextConfig = {
