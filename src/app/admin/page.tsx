@@ -633,14 +633,19 @@ export default function AdminDashboard() {
                         <p className="text-[11px] text-slate-500 mt-1">unidades en almacén</p>
                     </div>
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Inversión en Stock</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Inversión</p>
                         <p className="mt-2 text-2xl font-black text-sky-400">S/. {money(kpis.stockInvestment)}</p>
                         <p className="text-[11px] text-slate-500 mt-1">costo de la mercadería en almacén</p>
                     </div>
+                    <div className="bg-slate-900 border border-emerald-700/40 rounded-2xl p-5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Ganancia</p>
+                        <p className="mt-2 text-2xl font-black text-emerald-300">S/. {money(kpis.totalProfit)}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">total (ganada + potencial) · no baja al vender</p>
+                    </div>
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Valorización Inventario</p>
-                        <p className="mt-2 text-2xl font-black text-emerald-400">S/. {money(kpis.inventoryValue)}</p>
-                        <p className="text-[11px] text-slate-500 mt-1">valor de venta del stock</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia Neta</p>
+                        <p className="mt-2 text-2xl font-black text-green-400">S/. {money(kpis.realizedProfit)}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">{kpis.unitsSold.toLocaleString('es-PE')} vendidas · lo ya ganado</p>
                     </div>
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Dinero por Cobrar</p>
@@ -651,26 +656,6 @@ export default function AdminDashboard() {
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Clientes en Espera</p>
                         <p className="mt-2 text-2xl font-black text-indigo-400">{kpis.waitingClients.toLocaleString('es-PE')}</p>
                         <p className="text-[11px] text-slate-500 mt-1">encargos pendientes</p>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia Proyectada</p>
-                        <p className="mt-2 text-2xl font-black text-teal-400">S/. {money(kpis.projectedProfit)}</p>
-                        <p className="text-[11px] text-slate-500 mt-1">potencial del stock restante</p>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia Realizada</p>
-                        <p className="mt-2 text-2xl font-black text-green-400">S/. {money(kpis.realizedProfit)}</p>
-                        <p className="text-[11px] text-slate-500 mt-1">{kpis.unitsSold.toLocaleString('es-PE')} unidades vendidas · sube con cada venta</p>
-                    </div>
-                    <div className="bg-slate-900 border border-emerald-700/40 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Ganancia Total</p>
-                        <p className="mt-2 text-2xl font-black text-emerald-300">S/. {money(kpis.totalProfit)}</p>
-                        <p className="text-[11px] text-slate-500 mt-1">realizada + proyectada · no baja al vender</p>
-                    </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ventas Acumuladas</p>
-                        <p className="mt-2 text-2xl font-black text-fuchsia-400">S/. {money(kpis.salesRevenue)}</p>
-                        <p className="text-[11px] text-slate-500 mt-1">dinero total facturado por ventas</p>
                     </div>
                 </section>
 
