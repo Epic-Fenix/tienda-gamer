@@ -19,7 +19,13 @@ export default function OrderPage({ params }: { params: Promise<{ code: string }
 
     useEffect(() => {
         const fetchOrder = async () => {
-            const { data: orderData } = await supabase.from('orders').select('*').eq('order_code', code).single();
+            // Vía RPC segura (no expone la tabla); fallback a select directo si el RPC no existe aún.
+            const { data: rpcData, error: rpcErr } = await supabase.rpc('get_order', { p_code: code });
+            let orderData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+            if (rpcErr || !orderData) {
+                const { data } = await supabase.from('orders').select('*').eq('order_code', code).single();
+                orderData = data;
+            }
             if (orderData) {
                 setOrder(orderData as Order);
                 if (orderData.product_id) {

@@ -17,17 +17,21 @@ export default function OrderTracker() {
     const [lastQuery, setLastQuery] = useState('');
 
     const runSearch = async (q: string) => {
+        // Vía RPC segura (match exacto, sin enumeración); fallback si el RPC no existe aún.
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('search_orders', { p_term: q });
+        if (!rpcErr && rpcData) {
+            setResults(rpcData as Order[]);
+            return;
+        }
         const digits = q.replace(/\D/g, '');
         const filters = [`order_code.ilike.%${q}%`];
         if (digits.length >= 6) filters.push(`customer_phone.ilike.%${digits}%`);
-
         const { data } = await supabase
             .from('orders')
             .select('*')
             .or(filters.join(','))
             .order('created_at', { ascending: false })
             .limit(10);
-
         setResults((data as Order[]) || []);
     };
 

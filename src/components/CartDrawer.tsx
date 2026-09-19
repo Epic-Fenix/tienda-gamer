@@ -189,12 +189,15 @@ export default function CartDrawer() {
             }
         }
 
-        // Registra el uso del cupón (incrementa uses_count).
+        // Registra el uso del cupón vía RPC segura; fallback a update directo si no existe aún.
         if (appliedCoupon) {
-            await supabase
-                .from('coupons')
-                .update({ uses_count: (appliedCoupon.uses_count ?? 0) + 1 })
-                .eq('id', appliedCoupon.id);
+            const { error: cErr } = await supabase.rpc('use_coupon', { p_code: appliedCoupon.code });
+            if (cErr) {
+                await supabase
+                    .from('coupons')
+                    .update({ uses_count: (appliedCoupon.uses_count ?? 0) + 1 })
+                    .eq('id', appliedCoupon.id);
+            }
         }
 
         // Notificación automática por correo al registrar la reserva (no bloquea).
