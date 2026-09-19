@@ -547,6 +547,7 @@ export default function CartDrawer() {
                                         {isShippingDelivery(deliveryType) && (
                                             <input required type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección de envío (distrito, calle, número) *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
                                         )}
+                                        <p className="text-[10px] text-slate-500 text-center">Al confirmar aceptas nuestra <a href="/privacidad" target="_blank" className="text-indigo-400 hover:underline">Política de Privacidad</a> y <a href="/terminos" target="_blank" className="text-indigo-400 hover:underline">Términos</a>.</p>
                                         <button type="submit" disabled={loading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
                                             {loading ? 'Generando...' : 'Confirmar Reserva del Carrito'}
                                         </button>
