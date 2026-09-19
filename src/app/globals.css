@@ -44,9 +44,18 @@ body {
 /* Textura de grid tenue (fondo gamer). */
 .gamer-grid {
   background-image:
-    linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
   background-size: 34px 34px;
+}
+
+/* Texto neón con degradado cyan → magenta (arcade). */
+.text-arcade {
+  background: linear-gradient(90deg, #22d3ee 0%, #e11d8f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.45));
 }
 
 /* Barrido de brillo al pasar el mouse. */

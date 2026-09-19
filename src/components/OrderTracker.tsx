@@ -66,7 +66,7 @@ export default function OrderTracker() {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c4b5fd] hover:text-white transition"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#cbd5e1] hover:text-white transition"
             >
                 📦 Rastrear Pedido
             </button>

@@ -38,7 +38,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-2xl my-6 bg-[#2a1352] backdrop-blur border border-[#3e1b75] rounded-2xl shadow-2xl shadow-violet-900/40 max-h-[90vh] overflow-y-auto">
+            <div className="relative w-full max-w-2xl my-6 bg-[#12121a] backdrop-blur border border-[#242430] rounded-2xl shadow-2xl shadow-cyan-900/40 max-h-[90vh] overflow-y-auto">
                 <button onClick={onClose} className="absolute top-3 right-3 z-10 text-slate-400 hover:text-white text-2xl leading-none" aria-label="Cerrar">×</button>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5">
@@ -48,7 +48,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                             {platformLogo(product.platform)}
                             {product.platform || product.category}
                         </span>
-                        <span className={`absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-md ${isSecond ? 'bg-purple-500 text-white' : 'bg-emerald-500 text-black'}`}>
+                        <span className={`absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-md ${isSecond ? 'bg-fuchsia-600 text-white' : 'bg-emerald-500 text-black'}`}>
                             {conditionText(product)}
                         </span>
                         {product.image_url ? (
@@ -108,7 +108,7 @@ export default function ProductQuickView({ product, onClose, onReserve, onBackor
                                     </button>
                                     <button
                                         onClick={() => { onReserve(product); onClose(); }}
-                                        className="w-full py-2 rounded-lg text-sm font-bold text-violet-300 bg-slate-800/70 hover:bg-slate-700 border border-violet-500/20 hover:border-violet-500/50 transition"
+                                        className="w-full py-2 rounded-lg text-sm font-bold text-cyan-300 bg-slate-800/70 hover:bg-slate-700 border border-cyan-500/20 hover:border-cyan-500/50 transition"
                                     >
                                         Separar con {product.min_reservation_pct}%
                                     </button>
