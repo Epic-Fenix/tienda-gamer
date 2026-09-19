@@ -25,6 +25,11 @@ export const IZIPAY = {
     currency: 'PEN',
 };
 
+// Genera un código de orden con baja probabilidad de colisión
+// (timestamp base36 + 2 dígitos aleatorios), ej. SCOTT-K3F9A47.
+export const genOrderCode = () =>
+    `SCOTT-${Date.now().toString(36).toUpperCase().slice(-5)}${Math.floor(10 + Math.random() * 89)}`;
+
 // Formatea un monto en soles.
 export const formatSoles = (n: number) =>
     n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

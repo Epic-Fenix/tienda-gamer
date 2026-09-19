@@ -6,6 +6,7 @@ import { Product } from '@/types/database';
 import { useRouter } from 'next/navigation';
 import { DELIVERY_OPTIONS, isShippingDelivery, deliveryLabel, DeliveryValue } from '@/lib/site';
 import { notifyOrderByEmail } from '@/lib/notify';
+import { genOrderCode } from '@/lib/payment';
 
 interface Props {
     product: Product;
@@ -33,7 +34,7 @@ export default function ReservationModal({ product, onClose }: Props) {
         e.preventDefault();
         setLoading(true);
 
-        const orderCode = `SCOTT-${Math.floor(1000 + Math.random() * 9000)}`;
+        const orderCode = genOrderCode();
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
@@ -57,6 +58,15 @@ export default function ReservationModal({ product, onClose }: Props) {
             alert('Error al generar la separación: ' + error.message);
             setLoading(false);
             return;
+        }
+
+        // Descuento atómico de stock (+ unidades vendidas) vía RPC.
+        const { error: sellError } = await supabase.rpc('sell_items', { items: [{ id: product.id, qty: 1 }] });
+        if (sellError) {
+            // Fallback no atómico si el RPC no está creado aún (correr add_sell_items_rpc.sql).
+            console.error('[sell_items] reserva, usando fallback:', sellError.message);
+            const { data } = await supabase.from('products').select('stock, units_sold').eq('id', product.id).single();
+            await supabase.from('products').update({ stock: Math.max(0, (Number(data?.stock) || 0) - 1), units_sold: (Number(data?.units_sold) || 0) + 1 }).eq('id', product.id);
         }
 
         // Notificación automática por correo (no bloquea la redirección).

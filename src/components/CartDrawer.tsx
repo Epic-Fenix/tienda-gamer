@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
-import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink, IZIPAY } from '@/lib/payment';
+import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink, IZIPAY, genOrderCode } from '@/lib/payment';
 import { notifyOrderByEmail } from '@/lib/notify';
-import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, DeliveryValue } from '@/lib/site';
+import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, isShippingDelivery, DeliveryValue } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
@@ -30,6 +30,7 @@ export default function CartDrawer() {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
+    const [address, setAddress] = useState('');
     const [fullPayment, setFullPayment] = useState(false);
     const [deliveryType, setDeliveryType] = useState<DeliveryValue>('feria_grau');
     const [loading, setLoading] = useState(false);
@@ -130,7 +131,7 @@ export default function CartDrawer() {
         const payFull = forceFull || fullPayment;
         setLoading(true);
 
-        const orderCode = `SCOTT-${Math.floor(1000 + Math.random() * 9000)}`;
+        const orderCode = genOrderCode();
         const deadline = new Date();
         deadline.setHours(deadline.getHours() + 48);
 
@@ -157,6 +158,7 @@ export default function CartDrawer() {
             customer_phone: phone,
             customer_email: email.trim() !== '' ? email.trim() : null,
             delivery_type: deliveryType,
+            shipping_address: isShippingDelivery(deliveryType) && address.trim() !== '' ? address.trim() : null,
             total_amount: totalAmount,
             paid_amount: reservation,
             pending_amount: pending,
@@ -174,12 +176,17 @@ export default function CartDrawer() {
             return;
         }
 
-        // Descuenta stock y acumula unidades vendidas (lee valores actuales antes).
-        for (const it of items) {
-            const { data } = await supabase.from('products').select('stock, units_sold').eq('id', it.product_id).single();
-            const current = Number(data?.stock) || 0;
-            const sold = Number(data?.units_sold) || 0;
-            await supabase.from('products').update({ stock: Math.max(0, current - it.quantity), units_sold: sold + it.quantity }).eq('id', it.product_id);
+        // Descuento atómico de stock (+ unidades vendidas) en un solo UPDATE (evita sobreventa).
+        const { error: sellError } = await supabase.rpc('sell_items', {
+            items: items.map((it) => ({ id: it.product_id, qty: it.quantity })),
+        });
+        if (sellError) {
+            // Fallback no atómico si el RPC no está creado aún (correr add_sell_items_rpc.sql).
+            console.error('[sell_items] carrito, usando fallback:', sellError.message);
+            for (const it of items) {
+                const { data } = await supabase.from('products').select('stock, units_sold').eq('id', it.product_id).single();
+                await supabase.from('products').update({ stock: Math.max(0, (Number(data?.stock) || 0) - it.quantity), units_sold: (Number(data?.units_sold) || 0) + it.quantity }).eq('id', it.product_id);
+            }
         }
 
         // Registra el uso del cupón (incrementa uses_count).
@@ -223,6 +230,7 @@ export default function CartDrawer() {
     // Pago con tarjeta: real si Izipay está configurado; si no, demo que crea la reserva (pago total).
     const handleCardPay = async () => {
         if (name.trim() === '' || phone.trim() === '') { alert('Completa nombre y WhatsApp para pagar.'); return; }
+        if (isShippingDelivery(deliveryType) && address.trim() === '') { alert('Ingresa la dirección de envío.'); return; }
         setPayingCard(true);
         await new Promise((r) => setTimeout(r, 1400)); // simula el procesamiento
         setPayingCard(false);
@@ -236,6 +244,7 @@ export default function CartDrawer() {
         setName('');
         setPhone('');
         setEmail('');
+        setAddress('');
         setFullPayment(false);
         setDeliveryType('feria_grau');
         setStep('cart');
@@ -528,6 +537,9 @@ export default function CartDrawer() {
                                         <input required type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre completo *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
                                         <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="WhatsApp / Celular *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
                                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo (opcional)" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+                                        {isShippingDelivery(deliveryType) && (
+                                            <input required type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Dirección de envío (distrito, calle, número) *" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500" />
+                                        )}
                                         <button type="submit" disabled={loading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
                                             {loading ? 'Generando...' : 'Confirmar Reserva del Carrito'}
                                         </button>
