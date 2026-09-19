@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { TradeIn, TradeInStatus } from '@/types/database';
+import { normalizePhone } from '@/lib/site';
 
 export default function TradeInManager() {
     const [tradeIns, setTradeIns] = useState<TradeIn[]>([]);
@@ -24,13 +25,11 @@ export default function TradeInManager() {
     }, []);
 
     const buildWhatsappLink = (t: TradeIn) => {
-        const digits = (t.customer_phone || '').replace(/\D/g, '');
-        const local = digits.startsWith('51') && digits.length > 9 ? digits.slice(2) : digits;
         const message =
             `¡Hola ${t.customer_name}! Te escribimos de SCOTT GAMES por tu solicitud de trueque. ` +
             `Nos ofreces: ${t.offered_item}.` + (t.wanted_item ? ` Buscas: ${t.wanted_item}.` : '') +
             ` Queremos coordinar la valorización de tu artículo. ¿Te parece?`;
-        return `https://wa.me/51${local}?text=${encodeURIComponent(message)}`;
+        return `https://wa.me/${normalizePhone(t.customer_phone)}?text=${encodeURIComponent(message)}`;
     };
 
     const updateStatus = async (t: TradeIn, status: TradeInStatus) => {

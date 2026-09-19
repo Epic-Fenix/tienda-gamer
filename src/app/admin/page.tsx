@@ -10,7 +10,8 @@ import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
-import { SITE_URL, deliveryLabel } from '@/lib/site';
+import { SITE_URL, deliveryLabel, normalizePhone } from '@/lib/site';
+import { formatSoles } from '@/lib/payment';
 import LogoScott from '@/components/LogoScott';
 
 type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders';
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
         if (ordData) setOrders(ordData);
 
         const { data: backData } = await supabase.from('backorders').select('*, product:products(*)').order('created_at', { ascending: false });
-        if (backData) setBackorders(backData as any);
+        if (backData) setBackorders(backData as unknown as Backorder[]);
 
         setLoading(false);
     };
@@ -223,25 +224,34 @@ export default function AdminDashboard() {
 
     // Cambia el estado de una orden (se refleja en vivo en el rastreador del cliente).
     const handleUpdateOrderStatus = async (id: string, status: string) => {
+        const order = orders.find((o) => o.id === id);
+        const wasCancelled = order?.status === 'cancelled';
         setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
         const { error } = await supabase.from('orders').update({ status }).eq('id', id);
         if (error) {
             alert('Error al actualizar el estado: ' + error.message);
             fetchData();
+            return;
+        }
+        // Al cancelar (y no estaba ya cancelada): devolver stock y restar unidades vendidas.
+        if (status === 'cancelled' && !wasCancelled && order) {
+            const revert = (order.items && order.items.length > 0)
+                ? order.items.map((it) => ({ id: it.product_id, qty: -it.quantity }))
+                : (order.product_id ? [{ id: order.product_id, qty: -1 }] : []);
+            if (revert.length > 0) {
+                const { error: rErr } = await supabase.rpc('sell_items', { items: revert });
+                if (rErr) console.error('[sell_items] revertir cancelacion:', rErr.message);
+            }
         }
     };
 
-    // Normaliza el teléfono a formato internacional peruano para wa.me (51 + 9 dígitos)
     const buildWhatsappLink = (bo: Backorder) => {
-        const digits = (bo.customer_phone || '').replace(/\D/g, '');
-        // Evita duplicar el código de país si el cliente ya lo incluyó
-        const local = digits.startsWith('51') && digits.length > 9 ? digits.slice(2) : digits;
         const productName = bo.product?.name ?? 'tu producto encargado';
         const message =
             `¡Hola ${bo.customer_name}! Te escribimos de SCOTT GAMES. ` +
             `Te avisamos que ya ingresó stock de tu producto encargado: ${productName}. ` +
             `¿Deseas confirmar tu compra o reserva?`;
-        return `https://wa.me/51${local}?text=${encodeURIComponent(message)}`;
+        return `https://wa.me/${normalizePhone(bo.customer_phone)}?text=${encodeURIComponent(message)}`;
     };
 
     const handleUpdateBackorderStatus = async (id: string, status: BackorderStatus) => {
@@ -441,8 +451,7 @@ export default function AdminDashboard() {
     // Reinicia a la página 1 al cambiar búsqueda, estado u orden.
     useEffect(() => { setInvPage(1); }, [invSearch, invCond, invSort]);
 
-    const money = (n: number) =>
-        n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const money = formatSoles;
 
     // Genera y descarga un CSV en el cliente (Blob + URL.createObjectURL).
     const downloadCsv = (filename: string, headers: string[], rows: (string | number | null | undefined)[][]) => {

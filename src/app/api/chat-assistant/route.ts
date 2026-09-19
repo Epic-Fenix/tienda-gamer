@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/database';
-import { STORE } from '@/lib/site';
+import { STORE, FREE_SHIPPING_THRESHOLD } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const FREE_SHIPPING_THRESHOLD = 300;
 
 interface ChatMessage {
     role: 'user' | 'assistant';

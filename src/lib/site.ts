@@ -79,3 +79,10 @@ export const shippingCost = (value?: string | null, subtotal = 0): number => {
 // ¿La entrega requiere dirección de envío? (todo lo que no sea recojo).
 export const isShippingDelivery = (value?: string | null): boolean =>
     value !== 'feria_grau' && value !== 'pickup';
+
+// Normaliza un teléfono a formato internacional peruano para wa.me (51 + 9 dígitos).
+export const normalizePhone = (raw?: string | null): string => {
+    const digits = (raw || '').replace(/\D/g, '');
+    const local = digits.startsWith('51') && digits.length > 9 ? digits.slice(2) : digits;
+    return `51${local}`;
+};

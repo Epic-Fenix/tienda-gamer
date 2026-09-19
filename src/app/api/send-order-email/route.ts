@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { CONTACT } from '@/lib/site';
+import { formatSoles } from '@/lib/payment';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,8 +26,7 @@ interface OrderEmailPayload {
     isFullPayment?: boolean;
 }
 
-const soles = (n: number) =>
-    (Number(n) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const soles = (n: number) => formatSoles(Number(n) || 0);
 
 const shortCondition = (c?: string | null) => (c === 'segunda_mano' ? 'Seminuevo' : c ? 'Nuevo' : '');
 

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { formatSoles, PAYMENT_INFO, buildPedidoWhatsappLink, IZIPAY, genOrderCode } from '@/lib/payment';
 import { notifyOrderByEmail } from '@/lib/notify';
-import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, isShippingDelivery, DeliveryValue } from '@/lib/site';
+import { orderUrl, DELIVERY_OPTIONS, deliveryLabel, deliveryShort, shippingCost, isShippingDelivery, FREE_SHIPPING_THRESHOLD, DeliveryValue } from '@/lib/site';
 import PaymentInfo from '@/components/PaymentInfo';
 import { Coupon } from '@/types/database';
 import { QRCodeSVG } from 'qrcode.react';
@@ -375,7 +375,7 @@ export default function CartDrawer() {
                                 <div className="border-t border-slate-800 p-4 space-y-3 flex-shrink-0">
                                     {/* Barra de progreso hacia envío gratis (umbral S/. 300) */}
                                     {(() => {
-                                        const THRESHOLD = 300;
+                                        const THRESHOLD = FREE_SHIPPING_THRESHOLD;
                                         const remaining = Math.max(0, THRESHOLD - total);
                                         const pct = Math.min(100, (total / THRESHOLD) * 100);
                                         const unlocked = remaining <= 0;
@@ -455,7 +455,7 @@ export default function CartDrawer() {
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Tipo de entrega</p>
                                         <div className="grid grid-cols-1 gap-2">
                                             {DELIVERY_OPTIONS.map((opt) => {
-                                                const freeByThreshold = opt.fee > 0 && total >= 300;
+                                                const freeByThreshold = opt.fee > 0 && total >= FREE_SHIPPING_THRESHOLD;
                                                 return (
                                                     <button
                                                         key={opt.value}

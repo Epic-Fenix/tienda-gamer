@@ -5,9 +5,10 @@ create or replace function sell_items(items jsonb)
 returns void
 language sql
 as $$
+  -- qty positivo = venta (baja stock, sube vendidos); qty negativo = revertir (cancelación).
   update products p
      set stock = greatest(0, p.stock - x.qty),
-         units_sold = coalesce(p.units_sold, 0) + x.qty
+         units_sold = greatest(0, coalesce(p.units_sold, 0) + x.qty)
   from (
     select (e->>'id')::uuid as id, (e->>'qty')::int as qty
     from jsonb_array_elements(items) e
