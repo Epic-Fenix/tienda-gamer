@@ -24,3 +24,34 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ===== Toque gamer ===== */
+/* Fuente gamer (Orbitron) para títulos y logo. */
+.font-gamer {
+  font-family: var(--font-orbitron), var(--font-geist-sans), sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Glow neón por color. */
+.text-neon-cyan { text-shadow: 0 0 6px rgba(45, 212, 191, 0.55), 0 0 14px rgba(45, 212, 191, 0.35); }
+.text-neon-amber { text-shadow: 0 0 6px rgba(252, 211, 77, 0.5), 0 0 16px rgba(252, 211, 77, 0.3); }
+.text-neon-white { text-shadow: 0 0 8px rgba(255, 255, 255, 0.45); }
+
+/* Botón/elemento con brillo neón. */
+.glow-cyan { box-shadow: 0 0 12px rgba(45, 212, 191, 0.35), 0 0 24px rgba(45, 212, 191, 0.18); }
+.glow-amber { box-shadow: 0 0 14px rgba(252, 211, 77, 0.4), 0 0 30px rgba(252, 211, 77, 0.2); }
+
+/* Textura de grid tenue (fondo gamer). */
+.gamer-grid {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+/* Barrido de brillo al pasar el mouse. */
+@keyframes gamer-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+.animate-gamer-pulse { animation: gamer-pulse 2.2s ease-in-out infinite; }

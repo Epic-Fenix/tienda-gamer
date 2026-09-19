@@ -15,9 +15,9 @@ export default function LogoScott({ className = '' }: Props) {
                 className="h-10 w-10 object-contain rounded-lg"
                 style={{ mixBlendMode: 'screen' }}
             />
-            <span className="leading-none whitespace-nowrap">
-                <span className="font-black text-xl tracking-wider text-white">SCOTT</span>
-                <span className="font-black text-xl tracking-wider text-[#2dd4bf] ml-1">GAMES</span>
+            <span className="leading-none whitespace-nowrap font-gamer">
+                <span className="font-black text-xl tracking-wider text-white text-neon-white">SCOTT</span>
+                <span className="font-black text-xl tracking-wider text-[#2dd4bf] text-neon-cyan ml-1">GAMES</span>
             </span>
         </span>
     );

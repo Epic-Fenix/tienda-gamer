@@ -315,7 +315,7 @@ export default function Home() {
               className="w-full bg-[#2a1352] border border-[#3e1b75] rounded-xl pl-9 pr-16 py-2.5 text-sm text-white placeholder-[#8a72b8] focus:outline-none focus:border-[#8b5cf6]"
             />
           </div>
-          <button onClick={openCart} className="relative shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-zinc-950 bg-[#fcd34d] hover:bg-[#fbbf24] transition">
+          <button onClick={openCart} className="relative shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-zinc-950 bg-[#fcd34d] hover:bg-[#fbbf24] glow-amber transition">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
             <span className="hidden sm:inline">Carrito</span>
             {count > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#8b5cf6] text-white text-[11px] font-black flex items-center justify-center border-2 border-[#13072b]">{count}</span>}
@@ -346,15 +346,17 @@ export default function Home() {
                   )}
                   {/* Degradé para legibilidad del texto (oscuro a la izquierda, revela la imagen a la derecha) */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10 md:bg-gradient-to-r md:from-black/85 md:via-black/55 md:to-transparent" />
+                  {/* Textura grid gamer */}
+                  <div className="absolute inset-0 gamer-grid opacity-30 pointer-events-none" />
                   {/* Contenido sobre la imagen */}
                   <div className="relative z-10 w-full md:max-w-xl p-4 sm:p-8 md:p-12 flex flex-col justify-end md:justify-center items-start">
                     <span className="px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-black/40 text-amber-300 rounded-full border border-amber-300/30 mb-3 md:mb-4">
                       {b.badge || (mounted ? `🔥 Oferta · termina en ${pad(cH)}:${pad(cM)}:${pad(cS)}` : '🔥 Oferta')}
                     </span>
-                    <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md">{b.title}</h2>
+                    <h2 className="font-gamer text-xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md text-neon-white">{b.title}</h2>
                     <p className="mt-1 md:mt-3 text-xs sm:text-base md:text-lg text-gray-200 max-w-lg drop-shadow line-clamp-2 md:line-clamp-3">{b.subtitle}</p>
                     <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 md:mt-6">
-                      <button onClick={() => heroPrimary(b)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 transition">{b.primaryLabel || 'Reservar Preventa'}</button>
+                      <button onClick={() => heroPrimary(b)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-black bg-[#fcd34d] text-zinc-950 hover:bg-[#fbbf24] shadow-lg shadow-amber-900/30 glow-amber transition">{b.primaryLabel || 'Reservar Preventa'}</button>
                       {!b.action && (b.href ? (
                         <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
                       ) : (
@@ -401,7 +403,7 @@ export default function Home() {
 
         {/* Grilla de géneros */}
         <section>
-          <p className="text-[11px] font-black uppercase tracking-wider text-[#8a72b8] mb-2">Explora por género</p>
+          <p className="font-gamer text-[11px] font-black uppercase tracking-wider text-[#8a72b8] mb-2">Explora por género</p>
           <div className="flex flex-wrap gap-2">
             {GENRES.map((gname) => (
               <button
@@ -475,7 +477,7 @@ export default function Home() {
         <footer className="mt-10 pt-8 border-t border-[#3e1b75]/60">
           <div className="rounded-2xl border border-[#3e1b75] bg-gradient-to-r from-[#2a1352] to-[#3e1b75] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
-              <h3 className="text-lg font-black text-white">¡Únete a la comunidad SCOTT GAMES!</h3>
+              <h3 className="font-gamer text-lg font-black text-white text-neon-cyan">¡Únete a la comunidad SCOTT GAMES!</h3>
               <p className="text-sm text-[#c4b5fd] mt-1">Ofertas, sorteos y novedades primero en nuestro Facebook.</p>
             </div>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white bg-[#1877F2] hover:bg-[#0f66d0] transition whitespace-nowrap">
