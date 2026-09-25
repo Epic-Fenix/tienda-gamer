@@ -13,6 +13,7 @@ export default function GarantiaPage() {
     const [dni, setDni] = useState('');
     const [phone, setPhone] = useState('');
     const [product, setProduct] = useState('');
+    const [honeypot, setHoneypot] = useState(''); // Anti-spam: campo oculto, humanos no lo llenan.
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState('');
@@ -20,6 +21,8 @@ export default function GarantiaPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        // Bot detectado: finge éxito, no inserta nada.
+        if (honeypot.trim() !== '') { setDone(true); setTimeout(() => router.push('/'), 4000); return; }
         if (!/^\d{8}$/.test(dni.trim())) { setError('El DNI debe tener 8 dígitos.'); return; }
         if (phone.replace(/\D/g, '').length < 9) { setError('Ingresa un celular válido (9 dígitos).'); return; }
         setLoading(true);
@@ -30,7 +33,12 @@ export default function GarantiaPage() {
             product: product.trim() !== '' ? product.trim() : null,
         });
         setLoading(false);
-        if (err) { setError('No se pudo registrar. Intenta de nuevo.'); return; }
+        if (err) {
+            // 23505 = violación de índice único: garantía ya registrada.
+            if (err.code === '23505') { setError('Ya existe una garantía registrada con este DNI para ese producto.'); return; }
+            setError('No se pudo registrar. Intenta de nuevo.');
+            return;
+        }
         setDone(true);
         // Redirige al catálogo tras unos segundos.
         setTimeout(() => router.push('/'), 4000);
@@ -55,6 +63,17 @@ export default function GarantiaPage() {
                         <p className="text-xs text-slate-400 text-center mt-1 mb-4">¿Perdiste tu tarjeta de garantía? Regístrate aquí y quedarás en nuestra base para hacerla válida.</p>
 
                         <form onSubmit={handleSubmit} className="space-y-3 text-sm">
+                            {/* Honeypot anti-spam: oculto para humanos, los bots lo llenan. */}
+                            <input
+                                type="text"
+                                name="website"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                value={honeypot}
+                                onChange={(e) => setHoneypot(e.target.value)}
+                                className="hidden"
+                                aria-hidden="true"
+                            />
                             <div>
                                 <label className="text-xs text-slate-400 block mb-1">Nombre completo *</label>
                                 <input required type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" placeholder="Ej. Juan Pérez García" />

@@ -106,6 +106,23 @@ export interface Warranty {
     dni: string;
     customer_phone: string;
     product?: string | null;
+    warranty_months?: number; // Plazo de garantía en meses (default 3)
+    created_at: string;
+}
+
+export type ImportStatus = 'pedido' | 'en_camino' | 'recibido';
+
+// Importaciones / pedidos de Japón (solo panel admin).
+export interface ImportOrder {
+    id: string;
+    title: string;
+    supplier?: string | null;
+    quantity: number;
+    cost_yen?: number | null;
+    cost_soles?: number | null;
+    tracking?: string | null;
+    status: ImportStatus | string;
+    notes?: string | null;
     created_at: string;
 }
 

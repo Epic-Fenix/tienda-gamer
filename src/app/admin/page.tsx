@@ -9,21 +9,49 @@ import CouponManager from '@/components/admin/CouponManager';
 import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
 import WarrantyManager from '@/components/admin/WarrantyManager';
+import ImportsManager from '@/components/admin/ImportsManager';
+import ClientsManager from '@/components/admin/ClientsManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 import { SITE_URL, deliveryLabel, normalizePhone } from '@/lib/site';
 import { formatSoles } from '@/lib/payment';
 import LogoScott from '@/components/LogoScott';
 
-type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders' | 'garantias';
+type AdminTab = 'inicio' | 'inventario' | 'reservas' | 'clientes' | 'importaciones' | 'backorders' | 'garantias' | 'banners';
 
-const ADMIN_TABS: { key: AdminTab; label: string }[] = [
-    { key: 'inventario', label: '📦 Inventario / Stock' },
-    { key: 'banners', label: '🖼️ Banners & Hero' },
-    { key: 'reservas', label: '🧾 Reservas y Ventas' },
-    { key: 'backorders', label: '⏳ Backorders / Encargos' },
-    { key: 'garantias', label: '🛡️ Garantías' },
+// Módulos del panel, agrupados para la barra lateral.
+const ADMIN_GROUPS: { title: string; items: { key: AdminTab; label: string; icon: string }[] }[] = [
+    {
+        title: 'General',
+        items: [
+            { key: 'inicio', label: 'Inicio', icon: '🏠' },
+        ],
+    },
+    {
+        title: 'Catálogo y ventas',
+        items: [
+            { key: 'inventario', label: 'Inventario / Stock', icon: '📦' },
+            { key: 'reservas', label: 'Reservas y Ventas', icon: '🧾' },
+            { key: 'clientes', label: 'Clientes', icon: '👥' },
+        ],
+    },
+    {
+        title: 'Operaciones',
+        items: [
+            { key: 'importaciones', label: 'Importaciones (Japón)', icon: '🌏' },
+            { key: 'backorders', label: 'Backorders / Encargos', icon: '⏳' },
+            { key: 'garantias', label: 'Garantías', icon: '🛡️' },
+        ],
+    },
+    {
+        title: 'Marketing',
+        items: [
+            { key: 'banners', label: 'Banners & Hero', icon: '🖼️' },
+        ],
+    },
 ];
+const ALL_TABS = ADMIN_GROUPS.flatMap((g) => g.items);
+const tabLabel = (k: AdminTab) => ALL_TABS.find((t) => t.key === k)?.label ?? '';
 
 export default function AdminDashboard() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -71,7 +99,11 @@ export default function AdminDashboard() {
     const [verifyOrder, setVerifyOrder] = useState<Order | null>(null);
 
     // Pestaña activa del panel.
-    const [tabActive, setTabActive] = useState<AdminTab>('inventario');
+    const [tabActive, setTabActive] = useState<AdminTab>('inicio');
+    // Barra lateral: colapsada (solo íconos) o expandida.
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    // En móvil la barra se muestra como overlay.
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
     // Orden de la tabla de inventario.
     const [invSort, setInvSort] = useState<'recientes' | 'stock-desc' | 'stock-asc' | 'nombre' | 'precio-desc' | 'precio-asc' | 'vendidos-desc'>('recientes');
@@ -625,40 +657,126 @@ export default function AdminDashboard() {
 
     if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Cargando panel...</div>;
 
+    const goTab = (k: AdminTab) => { setTabActive(k); setMobileNavOpen(false); };
+
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
-            <div className="max-w-6xl mx-auto space-y-8">
-                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
-                    <div>
-                        <h1 className="text-2xl font-black text-indigo-400">Control de Inventario & Ventas</h1>
-                        <p className="text-xs text-slate-400">Administración general de tienda física y catálogo web</p>
+        <main className="min-h-screen bg-slate-950 text-slate-100 flex">
+            {/* Backdrop en móvil cuando la barra está abierta */}
+            {mobileNavOpen && (
+                <div onClick={() => setMobileNavOpen(false)} className="fixed inset-0 bg-black/60 z-30 md:hidden" />
+            )}
+
+            {/* Barra lateral de módulos */}
+            <aside className={`${mobileNavOpen ? 'flex' : 'hidden'} md:flex flex-col flex-shrink-0 fixed md:sticky top-0 z-40 h-screen bg-slate-900 border-r border-slate-800 transition-all ${sidebarCollapsed ? 'w-16' : 'w-60'}`}>
+                <div className="flex items-center justify-between gap-2 px-3 h-16 border-b border-slate-800">
+                    {!sidebarCollapsed && <LogoScott />}
+                    <button
+                        onClick={() => setSidebarCollapsed((v) => !v)}
+                        title={sidebarCollapsed ? 'Expandir' : 'Colapsar'}
+                        className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                    >
+                        {sidebarCollapsed ? '»' : '«'}
+                    </button>
+                    <button onClick={() => setMobileNavOpen(false)} className="md:hidden w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">✕</button>
+                </div>
+
+                <nav className="flex-1 overflow-y-auto py-4 space-y-5">
+                    {ADMIN_GROUPS.map((group) => (
+                        <div key={group.title}>
+                            {!sidebarCollapsed && <p className="px-4 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">{group.title}</p>}
+                            <div className="space-y-0.5 px-2">
+                                {group.items.map((t) => (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => goTab(t.key)}
+                                        title={t.label}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition ${tabActive === t.key ? 'bg-indigo-600/20 text-white border border-indigo-500/40' : 'text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent'} ${sidebarCollapsed ? 'justify-center' : ''}`}
+                                    >
+                                        <span className="text-base leading-none">{t.icon}</span>
+                                        {!sidebarCollapsed && <span className="truncate">{t.label}</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </nav>
+
+                <div className="border-t border-slate-800 p-2">
+                    <button onClick={handleLogout} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-rose-300 hover:text-white hover:bg-rose-600/30 transition ${sidebarCollapsed ? 'justify-center' : ''}`} title="Cerrar sesión">
+                        <span className="text-base leading-none">⏻</span>
+                        {!sidebarCollapsed && <span>Cerrar sesión</span>}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Columna de contenido */}
+            <div className="flex-1 min-w-0 flex flex-col">
+                {/* Barra superior */}
+                <header className="sticky top-0 z-20 flex items-center justify-between gap-3 h-16 px-4 md:px-6 bg-slate-950/80 backdrop-blur border-b border-slate-800">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <button onClick={() => setMobileNavOpen(true)} className="md:hidden w-9 h-9 rounded-lg text-slate-300 hover:bg-slate-800 transition flex items-center justify-center">☰</button>
+                        <div className="min-w-0">
+                            <h1 className="text-base md:text-lg font-black text-white truncate">{tabLabel(tabActive)}</h1>
+                            {adminEmail && <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{adminEmail}</p>}
+                        </div>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                        <Link href="/" className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold transition">
-                            Ver Catálogo
-                        </Link>
-                        <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
-                            + Nuevo Producto
-                        </button>
-                        {adminEmail && <span className="self-center text-[11px] text-slate-500 max-w-[160px] truncate" title={adminEmail}>{adminEmail}</span>}
-                        <button onClick={handleLogout} className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition">
-                            Cerrar Sesión
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <Link href="/" className="px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold transition whitespace-nowrap">Ver Catálogo</Link>
+                        <button onClick={() => setShowModal(true)} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition whitespace-nowrap">+ Producto</button>
                     </div>
                 </header>
 
-                {/* Navegación por pestañas */}
-                <nav className="flex flex-wrap gap-2 border-b border-slate-800">
-                    {ADMIN_TABS.map((t) => (
-                        <button
-                            key={t.key}
-                            onClick={() => setTabActive(t.key)}
-                            className={`px-4 py-2.5 rounded-t-lg text-xs font-bold transition border-b-2 -mb-px ${tabActive === t.key ? 'border-indigo-500 text-white bg-slate-900' : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'}`}
-                        >
-                            {t.label}
+                <div className="p-4 md:p-8 space-y-8">
+
+                {tabActive === 'inicio' && (
+                <section className="space-y-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ganancia realizada</p>
+                            <p className="mt-2 text-2xl font-black text-emerald-400">S/. {money(kpis.realizedProfit)}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">{kpis.unitsSold} unidades vendidas</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ventas (facturado)</p>
+                            <p className="mt-2 text-2xl font-black text-white">S/. {money(kpis.salesRevenue)}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">entregados + tienda física</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Por cobrar</p>
+                            <p className="mt-2 text-2xl font-black text-amber-400">S/. {money(kpis.pendingRevenue)}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">saldos de pedidos abiertos</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Inversión en stock</p>
+                            <p className="mt-2 text-2xl font-black text-sky-400">S/. {money(kpis.stockInvestment)}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">{kpis.totalStock} unidades en almacén</p>
+                        </div>
+                    </div>
+
+                    {/* Alertas / atajos */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button onClick={() => goTab('inventario')} className="text-left bg-slate-900 border border-slate-800 hover:border-rose-500/40 rounded-2xl p-5 transition">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Stock bajo</p>
+                            <p className="mt-2 text-2xl font-black text-rose-400">{products.filter((p) => (Number(p.stock) || 0) <= 2).length}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">productos con 2 o menos → revisar</p>
                         </button>
-                    ))}
-                </nav>
+                        <button onClick={() => goTab('backorders')} className="text-left bg-slate-900 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-5 transition">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Encargos pendientes</p>
+                            <p className="mt-2 text-2xl font-black text-amber-400">{kpis.waitingClients}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">clientes esperando stock</p>
+                        </button>
+                        <button onClick={() => goTab('importaciones')} className="text-left bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-2xl p-5 transition">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Importaciones en curso</p>
+                            <p className="mt-2 text-2xl font-black text-sky-400">🌏</p>
+                            <p className="text-[11px] text-slate-500 mt-1">gestionar pedidos de Japón</p>
+                        </button>
+                    </div>
+                </section>
+                )}
+
+                {tabActive === 'clientes' && <ClientsManager />}
+
+                {tabActive === 'importaciones' && <ImportsManager />}
 
                 {tabActive === 'inventario' && (
                 <>
@@ -1000,6 +1118,7 @@ export default function AdminDashboard() {
                 {tabActive === 'garantias' && (
                 <WarrantyManager />
                 )}
+                </div>
             </div>
 
             {/* Modal Nuevo Producto */}
