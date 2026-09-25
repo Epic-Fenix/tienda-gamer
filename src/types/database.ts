@@ -110,6 +110,16 @@ export interface Warranty {
     created_at: string;
 }
 
+// Suscriptor de la lista de marketing (newsletter).
+export interface Subscriber {
+    id: string;
+    email: string;
+    name?: string | null;
+    source?: string | null;
+    consent: boolean;
+    created_at: string;
+}
+
 export type BackorderStatus = 'pending' | 'notified' | 'completed';
 
 export interface Backorder {

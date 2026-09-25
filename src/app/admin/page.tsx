@@ -10,13 +10,14 @@ import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
 import WarrantyManager from '@/components/admin/WarrantyManager';
 import ClientsManager from '@/components/admin/ClientsManager';
+import SubscribersManager from '@/components/admin/SubscribersManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 import { SITE_URL, deliveryLabel, normalizePhone } from '@/lib/site';
 import { formatSoles } from '@/lib/payment';
 import LogoScott from '@/components/LogoScott';
 
-type AdminTab = 'inicio' | 'inventario' | 'reservas' | 'clientes' | 'backorders' | 'garantias' | 'banners';
+type AdminTab = 'inicio' | 'inventario' | 'reservas' | 'clientes' | 'backorders' | 'garantias' | 'suscriptores' | 'banners';
 
 // Módulos del panel, agrupados para la barra lateral.
 const ADMIN_GROUPS: { title: string; items: { key: AdminTab; label: string; icon: string }[] }[] = [
@@ -44,6 +45,7 @@ const ADMIN_GROUPS: { title: string; items: { key: AdminTab; label: string; icon
     {
         title: 'Marketing',
         items: [
+            { key: 'suscriptores', label: 'Suscriptores', icon: '📩' },
             { key: 'banners', label: 'Banners & Hero', icon: '🖼️' },
         ],
     },
@@ -773,6 +775,8 @@ export default function AdminDashboard() {
                 )}
 
                 {tabActive === 'clientes' && <ClientsManager />}
+
+                {tabActive === 'suscriptores' && <SubscribersManager />}
 
                 {tabActive === 'inventario' && (
                 <>

@@ -4,6 +4,8 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import GamerAiBot from "@/components/GamerAiBot";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import CookieConsent from "@/components/CookieConsent";
+import Analytics from "@/components/Analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +61,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <WhatsAppFab />
           <GamerAiBot />
+          <CookieConsent />
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );

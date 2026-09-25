@@ -16,6 +16,7 @@ import GameRequestModal from '@/components/GameRequestModal';
 import ProductCard from '@/components/ProductCard';
 import ProductQuickView from '@/components/ProductQuickView';
 import LogoScott from '@/components/LogoScott';
+import NewsletterSignup from '@/components/NewsletterSignup';
 
 type SortOption = 'recientes' | 'precio-asc' | 'precio-desc';
 
@@ -524,6 +525,9 @@ export default function Home() {
               </span>
             </a>
           </div>
+
+          {/* Newsletter: captación de correos con consentimiento */}
+          <NewsletterSignup />
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-6 text-xs text-[#8891a8]">
             <LogoScott />
