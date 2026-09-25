@@ -110,22 +110,6 @@ export interface Warranty {
     created_at: string;
 }
 
-export type ImportStatus = 'pedido' | 'en_camino' | 'recibido';
-
-// Importaciones / pedidos de Japón (solo panel admin).
-export interface ImportOrder {
-    id: string;
-    title: string;
-    supplier?: string | null;
-    quantity: number;
-    cost_yen?: number | null;
-    cost_soles?: number | null;
-    tracking?: string | null;
-    status: ImportStatus | string;
-    notes?: string | null;
-    created_at: string;
-}
-
 export type BackorderStatus = 'pending' | 'notified' | 'completed';
 
 export interface Backorder {

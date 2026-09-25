@@ -103,13 +103,13 @@ export default function WarrantyManager() {
                 <table className="w-full text-left text-xs">
                     <thead className="text-slate-500 border-b border-slate-800 uppercase">
                         <tr>
-                            <th className="pb-3">Cliente</th>
-                            <th className="pb-3">DNI</th>
-                            <th className="pb-3">Celular</th>
-                            <th className="pb-3">Producto</th>
-                            <th className="pb-3">Plazo</th>
-                            <th className="pb-3">Vence</th>
-                            <th className="pb-3">Estado</th>
+                            <th className="pb-3 pr-4">Cliente</th>
+                            <th className="pb-3 pr-4">DNI</th>
+                            <th className="pb-3 pr-4">Celular</th>
+                            <th className="pb-3 pr-4">Producto</th>
+                            <th className="pb-3 pr-4">Plazo</th>
+                            <th className="pb-3 pr-4">Vence</th>
+                            <th className="pb-3 pr-4">Estado</th>
                             <th className="pb-3 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -121,19 +121,19 @@ export default function WarrantyManager() {
                             const { end, active, months } = warrantyExpiry(w);
                             return (
                                 <tr key={w.id} className="hover:bg-slate-950/40 transition align-top">
-                                    <td className="py-3 font-semibold text-white">{w.customer_name}</td>
-                                    <td className="py-3 text-slate-300 font-mono">{w.dni}</td>
-                                    <td className="py-3 text-slate-400">{w.customer_phone}</td>
-                                    <td className="py-3 text-slate-400">{w.product || '—'}</td>
-                                    <td className="py-3">
+                                    <td className="py-3 pr-4 font-semibold text-white">{w.customer_name}</td>
+                                    <td className="py-3 pr-4 text-slate-300 font-mono whitespace-nowrap">{w.dni}</td>
+                                    <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{w.customer_phone}</td>
+                                    <td className="py-3 pr-4 text-slate-400">{w.product || '—'}</td>
+                                    <td className="py-3 pr-4">
                                         <select value={months} onChange={(e) => updateMonths(w, Number(e.target.value))} className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500">
                                             <option value={3}>3 meses</option>
                                             <option value={6}>6 meses</option>
                                             <option value={12}>12 meses</option>
                                         </select>
                                     </td>
-                                    <td className="py-3 text-slate-500">{end.toLocaleDateString('es-PE')}</td>
-                                    <td className="py-3">
+                                    <td className="py-3 pr-4 text-slate-500 whitespace-nowrap">{end.toLocaleDateString('es-PE')}</td>
+                                    <td className="py-3 pr-4">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
                                             {active ? 'Vigente' : 'Vencida'}
                                         </span>

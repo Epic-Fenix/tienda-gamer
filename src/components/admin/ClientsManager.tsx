@@ -94,12 +94,12 @@ export default function ClientsManager() {
                 <table className="w-full text-left text-xs">
                     <thead className="text-slate-500 border-b border-slate-800 uppercase">
                         <tr>
-                            <th className="pb-3">Cliente</th>
-                            <th className="pb-3">Celular</th>
-                            <th className="pb-3">Pedidos</th>
-                            <th className="pb-3">Gastado</th>
-                            <th className="pb-3">Garantías</th>
-                            <th className="pb-3">Origen</th>
+                            <th className="pb-3 pr-4">Cliente</th>
+                            <th className="pb-3 pr-4">Celular</th>
+                            <th className="pb-3 pr-4">Pedidos</th>
+                            <th className="pb-3 pr-4">Gastado</th>
+                            <th className="pb-3 pr-4">Garantías</th>
+                            <th className="pb-3 pr-4">Origen</th>
                             <th className="pb-3 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -109,12 +109,12 @@ export default function ClientsManager() {
                         )}
                         {filtered.map((c) => (
                             <tr key={c.key} className="hover:bg-slate-950/40 transition align-top">
-                                <td className="py-3 font-semibold text-white">{c.name || '—'}</td>
-                                <td className="py-3 text-slate-400">{c.phone}</td>
-                                <td className="py-3 text-slate-300">{c.orders}</td>
-                                <td className="py-3 text-emerald-400 font-semibold">{c.spent > 0 ? `S/. ${formatSoles(c.spent)}` : '—'}</td>
-                                <td className="py-3 text-slate-300">{c.warranties}</td>
-                                <td className="py-3">
+                                <td className="py-3 pr-4 font-semibold text-white">{c.name || '—'}</td>
+                                <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{c.phone}</td>
+                                <td className="py-3 pr-4 text-slate-300">{c.orders}</td>
+                                <td className="py-3 pr-4 text-emerald-400 font-semibold whitespace-nowrap">{c.spent > 0 ? `S/. ${formatSoles(c.spent)}` : '—'}</td>
+                                <td className="py-3 pr-4 text-slate-300">{c.warranties}</td>
+                                <td className="py-3 pr-4">
                                     <div className="flex gap-1">
                                         {c.fromOrders && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-300">Pedidos</span>}
                                         {c.fromWarranty && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-300">Garantía</span>}

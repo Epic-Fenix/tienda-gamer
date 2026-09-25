@@ -9,7 +9,6 @@ import CouponManager from '@/components/admin/CouponManager';
 import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
 import WarrantyManager from '@/components/admin/WarrantyManager';
-import ImportsManager from '@/components/admin/ImportsManager';
 import ClientsManager from '@/components/admin/ClientsManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
@@ -17,7 +16,7 @@ import { SITE_URL, deliveryLabel, normalizePhone } from '@/lib/site';
 import { formatSoles } from '@/lib/payment';
 import LogoScott from '@/components/LogoScott';
 
-type AdminTab = 'inicio' | 'inventario' | 'reservas' | 'clientes' | 'importaciones' | 'backorders' | 'garantias' | 'banners';
+type AdminTab = 'inicio' | 'inventario' | 'reservas' | 'clientes' | 'backorders' | 'garantias' | 'banners';
 
 // Módulos del panel, agrupados para la barra lateral.
 const ADMIN_GROUPS: { title: string; items: { key: AdminTab; label: string; icon: string }[] }[] = [
@@ -38,7 +37,6 @@ const ADMIN_GROUPS: { title: string; items: { key: AdminTab; label: string; icon
     {
         title: 'Operaciones',
         items: [
-            { key: 'importaciones', label: 'Importaciones (Japón)', icon: '🌏' },
             { key: 'backorders', label: 'Backorders / Encargos', icon: '⏳' },
             { key: 'garantias', label: 'Garantías', icon: '🛡️' },
         ],
@@ -758,25 +756,23 @@ export default function AdminDashboard() {
                         <button onClick={() => goTab('inventario')} className="text-left bg-slate-900 border border-slate-800 hover:border-rose-500/40 rounded-2xl p-5 transition">
                             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Stock bajo</p>
                             <p className="mt-2 text-2xl font-black text-rose-400">{products.filter((p) => (Number(p.stock) || 0) <= 2).length}</p>
-                            <p className="text-[11px] text-slate-500 mt-1">productos con 2 o menos → revisar</p>
+                            <p className="text-[11px] text-slate-500 mt-1">productos con 2 o menos, revisar</p>
                         </button>
                         <button onClick={() => goTab('backorders')} className="text-left bg-slate-900 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-5 transition">
                             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Encargos pendientes</p>
                             <p className="mt-2 text-2xl font-black text-amber-400">{kpis.waitingClients}</p>
                             <p className="text-[11px] text-slate-500 mt-1">clientes esperando stock</p>
                         </button>
-                        <button onClick={() => goTab('importaciones')} className="text-left bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-2xl p-5 transition">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Importaciones en curso</p>
-                            <p className="mt-2 text-2xl font-black text-sky-400">🌏</p>
-                            <p className="text-[11px] text-slate-500 mt-1">gestionar pedidos de Japón</p>
+                        <button onClick={() => goTab('reservas')} className="text-left bg-slate-900 border border-slate-800 hover:border-indigo-500/40 rounded-2xl p-5 transition">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pedidos abiertos</p>
+                            <p className="mt-2 text-2xl font-black text-indigo-400">{orders.filter((o) => { const n = normalizeStatus(o.status); return n !== 'delivered' && n !== 'cancelled'; }).length}</p>
+                            <p className="text-[11px] text-slate-500 mt-1">reservas y ventas por cerrar</p>
                         </button>
                     </div>
                 </section>
                 )}
 
                 {tabActive === 'clientes' && <ClientsManager />}
-
-                {tabActive === 'importaciones' && <ImportsManager />}
 
                 {tabActive === 'inventario' && (
                 <>
@@ -1030,10 +1026,10 @@ export default function AdminDashboard() {
                         <table className="w-full text-left text-xs">
                             <thead className="text-slate-500 border-b border-slate-800 uppercase">
                                 <tr>
-                                    <th className="pb-3">Cliente</th>
-                                    <th className="pb-3">Teléfono</th>
-                                    <th className="pb-3">Producto</th>
-                                    <th className="pb-3">Estado</th>
+                                    <th className="pb-3 pr-4">Cliente</th>
+                                    <th className="pb-3 pr-4">Teléfono</th>
+                                    <th className="pb-3 pr-4">Producto</th>
+                                    <th className="pb-3 pr-4">Estado</th>
                                     <th className="pb-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
@@ -1047,10 +1043,10 @@ export default function AdminDashboard() {
                                 )}
                                 {backorders.map((bo) => (
                                     <tr key={bo.id} className="hover:bg-slate-950/40 transition">
-                                        <td className="py-3 font-semibold text-white">{bo.customer_name}</td>
-                                        <td className="py-3 text-slate-400">{bo.customer_phone}</td>
-                                        <td className="py-3 text-slate-300">{bo.product?.name ?? '—'}</td>
-                                        <td className="py-3">
+                                        <td className="py-3 pr-4 font-semibold text-white">{bo.customer_name}</td>
+                                        <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{bo.customer_phone}</td>
+                                        <td className="py-3 pr-4 text-slate-300">{bo.product?.name ?? '—'}</td>
+                                        <td className="py-3 pr-4">
                                             <span
                                                 className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${bo.status === 'completed'
                                                     ? 'bg-emerald-500/10 text-emerald-400'

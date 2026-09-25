@@ -49,11 +49,11 @@ export default function TradeInManager() {
                 <table className="w-full text-left text-xs">
                     <thead className="text-slate-500 border-b border-slate-800 uppercase">
                         <tr>
-                            <th className="pb-3">Cliente</th>
-                            <th className="pb-3">Teléfono</th>
-                            <th className="pb-3">Ofrece</th>
-                            <th className="pb-3">Busca</th>
-                            <th className="pb-3">Estado</th>
+                            <th className="pb-3 pr-4">Cliente</th>
+                            <th className="pb-3 pr-4">Teléfono</th>
+                            <th className="pb-3 pr-4">Ofrece</th>
+                            <th className="pb-3 pr-4">Busca</th>
+                            <th className="pb-3 pr-4">Estado</th>
                             <th className="pb-3 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -63,11 +63,11 @@ export default function TradeInManager() {
                         )}
                         {tradeIns.map((t) => (
                             <tr key={t.id} className="hover:bg-slate-950/40 transition align-top">
-                                <td className="py-3 font-semibold text-white">{t.customer_name}</td>
-                                <td className="py-3 text-slate-400">{t.customer_phone}</td>
-                                <td className="py-3 text-slate-300 max-w-[180px]">{t.offered_item}</td>
-                                <td className="py-3 text-slate-400">{t.wanted_item || '—'}</td>
-                                <td className="py-3">
+                                <td className="py-3 pr-4 font-semibold text-white">{t.customer_name}</td>
+                                <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{t.customer_phone}</td>
+                                <td className="py-3 pr-4 text-slate-300 max-w-[180px]">{t.offered_item}</td>
+                                <td className="py-3 pr-4 text-slate-400">{t.wanted_item || '—'}</td>
+                                <td className="py-3 pr-4">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${t.status === 'closed' ? 'bg-emerald-500/10 text-emerald-400' : t.status === 'contacted' ? 'bg-sky-500/10 text-sky-400' : 'bg-amber-500/10 text-amber-400'}`}>
                                         {t.status === 'closed' ? 'Cerrado' : t.status === 'contacted' ? 'Contactado' : 'Pendiente'}
                                     </span>
