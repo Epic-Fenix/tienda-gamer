@@ -6,9 +6,10 @@ import { Warranty } from '@/types/database';
 import { normalizePhone } from '@/lib/site';
 
 // Calcula la fecha de vencimiento y si sigue vigente.
+// Usa la fecha de compra si existe; si no, la fecha de registro.
 function warrantyExpiry(w: Warranty) {
     const months = Number(w.warranty_months) || 3;
-    const start = new Date(w.created_at);
+    const start = new Date(w.purchase_date || w.created_at);
     const end = new Date(start);
     end.setMonth(end.getMonth() + months);
     const active = Date.now() <= end.getTime();
@@ -49,12 +50,13 @@ export default function WarrantyManager() {
 
     const exportCsv = () => {
         const escape = (c: string | number | null | undefined) => `"${String(c ?? '').replace(/"/g, '""')}"`;
-        const headers = ['Cliente', 'DNI', 'Celular', 'Producto', 'Meses', 'Registro', 'Vence', 'Estado'];
+        const headers = ['Cliente', 'Celular', 'Producto', 'Fecha compra', 'Meses', 'Vence', 'Estado'];
         const rows = warranties.map((w) => {
             const { end, active, months } = warrantyExpiry(w);
             return [
-                w.customer_name, w.dni, w.customer_phone, w.product || '', months,
-                new Date(w.created_at).toLocaleDateString('es-PE'),
+                w.customer_name, w.customer_phone, w.product || '',
+                w.purchase_date ? new Date(w.purchase_date).toLocaleDateString('es-PE') : '',
+                months,
                 end.toLocaleDateString('es-PE'),
                 active ? 'Vigente' : 'Vencida',
             ];
@@ -76,7 +78,6 @@ export default function WarrantyManager() {
         ? warranties
         : warranties.filter((w) =>
             w.customer_name.toLowerCase().includes(q) ||
-            w.dni.includes(q) ||
             w.customer_phone.includes(q) ||
             (w.product || '').toLowerCase().includes(q));
 
@@ -91,7 +92,7 @@ export default function WarrantyManager() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Buscar nombre, DNI, celular…"
+                        placeholder="Buscar nombre, celular, producto…"
                         className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 w-48"
                     />
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">{activeCount} vigentes</span>
@@ -104,9 +105,10 @@ export default function WarrantyManager() {
                     <thead className="text-slate-500 border-b border-slate-800 uppercase">
                         <tr>
                             <th className="pb-3 pr-4">Cliente</th>
-                            <th className="pb-3 pr-4">DNI</th>
                             <th className="pb-3 pr-4">Celular</th>
                             <th className="pb-3 pr-4">Producto</th>
+                            <th className="pb-3 pr-4">Compra</th>
+                            <th className="pb-3 pr-4">Tarjeta</th>
                             <th className="pb-3 pr-4">Plazo</th>
                             <th className="pb-3 pr-4">Vence</th>
                             <th className="pb-3 pr-4">Estado</th>
@@ -115,16 +117,21 @@ export default function WarrantyManager() {
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">
                         {filtered.length === 0 && (
-                            <tr><td colSpan={8} className="py-6 text-center text-slate-500">No hay garantías registradas.</td></tr>
+                            <tr><td colSpan={9} className="py-6 text-center text-slate-500">No hay garantías registradas.</td></tr>
                         )}
                         {filtered.map((w) => {
                             const { end, active, months } = warrantyExpiry(w);
                             return (
                                 <tr key={w.id} className="hover:bg-slate-950/40 transition align-top">
                                     <td className="py-3 pr-4 font-semibold text-white">{w.customer_name}</td>
-                                    <td className="py-3 pr-4 text-slate-300 font-mono whitespace-nowrap">{w.dni}</td>
                                     <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{w.customer_phone}</td>
                                     <td className="py-3 pr-4 text-slate-400">{w.product || '—'}</td>
+                                    <td className="py-3 pr-4 text-slate-400 whitespace-nowrap">{w.purchase_date ? new Date(w.purchase_date).toLocaleDateString('es-PE') : '—'}</td>
+                                    <td className="py-3 pr-4">
+                                        {w.card_image_url
+                                            ? <a href={w.card_image_url} target="_blank" rel="noopener noreferrer" className="text-[#22d3ee] hover:underline font-bold">Ver foto</a>
+                                            : <span className="text-slate-600">—</span>}
+                                    </td>
                                     <td className="py-3 pr-4">
                                         <select value={months} onChange={(e) => updateMonths(w, Number(e.target.value))} className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500">
                                             <option value={3}>3 meses</option>

@@ -10,32 +10,46 @@ import LogoScott from '@/components/LogoScott';
 export default function GarantiaPage() {
     const router = useRouter();
     const [name, setName] = useState('');
-    const [dni, setDni] = useState('');
     const [phone, setPhone] = useState('');
     const [product, setProduct] = useState('');
+    const [purchaseDate, setPurchaseDate] = useState('');
+    const [cardFile, setCardFile] = useState<File | null>(null);
     const [honeypot, setHoneypot] = useState(''); // Anti-spam: campo oculto, humanos no lo llenan.
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState('');
+
+    // Sube la foto de la tarjeta al bucket público `warranty-cards` y devuelve la URL (o null).
+    const uploadCard = async (): Promise<string | null> => {
+        if (!cardFile) return null;
+        const ext = (cardFile.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('warranty-cards').upload(path, cardFile, { cacheControl: '3600', upsert: false });
+        if (upErr) { console.error('[warranty-card] upload:', upErr.message); return null; }
+        return supabase.storage.from('warranty-cards').getPublicUrl(path).data.publicUrl;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         // Bot detectado: finge éxito, no inserta nada.
         if (honeypot.trim() !== '') { setDone(true); setTimeout(() => router.push('/'), 4000); return; }
-        if (!/^\d{8}$/.test(dni.trim())) { setError('El DNI debe tener 8 dígitos.'); return; }
         if (phone.replace(/\D/g, '').length < 9) { setError('Ingresa un celular válido (9 dígitos).'); return; }
+        if (cardFile && cardFile.size > 5 * 1024 * 1024) { setError('La foto no debe superar 5 MB.'); return; }
         setLoading(true);
+
+        const cardUrl = await uploadCard();
         const { error: err } = await supabase.from('warranties').insert({
             customer_name: name.trim(),
-            dni: dni.trim(),
             customer_phone: phone.trim(),
             product: product.trim() !== '' ? product.trim() : null,
+            purchase_date: purchaseDate !== '' ? purchaseDate : null,
+            card_image_url: cardUrl,
         });
         setLoading(false);
         if (err) {
             // 23505 = violación de índice único: garantía ya registrada.
-            if (err.code === '23505') { setError('Ya existe una garantía registrada con este DNI para ese producto.'); return; }
+            if (err.code === '23505') { setError('Ya existe una garantía registrada con este celular para ese producto.'); return; }
             setError('No se pudo registrar. Intenta de nuevo.');
             return;
         }
@@ -79,16 +93,21 @@ export default function GarantiaPage() {
                                 <input required type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" placeholder="Ej. Juan Pérez García" />
                             </div>
                             <div>
-                                <label className="text-xs text-slate-400 block mb-1">DNI *</label>
-                                <input required inputMode="numeric" maxLength={8} value={dni} onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" placeholder="8 dígitos" />
-                            </div>
-                            <div>
                                 <label className="text-xs text-slate-400 block mb-1">Celular / WhatsApp *</label>
                                 <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" placeholder="Ej. 987654321" />
                             </div>
                             <div>
+                                <label className="text-xs text-slate-400 block mb-1">Fecha de compra *</label>
+                                <input required type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" />
+                            </div>
+                            <div>
                                 <label className="text-xs text-slate-400 block mb-1 flex justify-between"><span>Producto</span><span className="text-slate-500 text-[10px]">(opcional)</span></label>
                                 <input type="text" value={product} onChange={(e) => setProduct(e.target.value)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" placeholder="Ej. PS5 Slim / God of War" />
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 block mb-1 flex justify-between"><span>Foto de tu tarjeta de garantía</span><span className="text-slate-500 text-[10px]">(opcional)</span></label>
+                                <input type="file" accept="image/*" onChange={(e) => setCardFile(e.target.files?.[0] ?? null)} className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#242430] file:text-white hover:file:bg-[#2f2f3d]" />
+                                <p className="text-[10px] text-slate-500 mt-1">Sube una foto de la tarjeta donde se vea la fecha. Ayuda a validar tu garantía.</p>
                             </div>
 
                             {error && <p className="text-xs text-rose-400">{error}</p>}

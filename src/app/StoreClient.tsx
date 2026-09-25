@@ -169,7 +169,10 @@ export default function Home() {
     if (b.action === 'trueque') { setTradeInOpen(true); return; }
     if (b.action === 'buscar') { setGameRequestOpen(true); return; }
     if (b.action === 'catalog') { handleHeroCta(undefined); return; }
-    handleHeroCta(b.targetSlug);
+    // Banner de BD: si tiene producto ligado, abre su ficha; si tiene enlace, lo abre; si no, baja al catálogo.
+    if (b.targetSlug) { handleHeroCta(b.targetSlug); return; }
+    if (b.href) { window.open(b.href, '_blank', 'noopener,noreferrer'); return; }
+    handleHeroCta(undefined);
   };
 
   // Abre la ficha rápida y refleja el producto en la URL (?p=slug) para compartir.

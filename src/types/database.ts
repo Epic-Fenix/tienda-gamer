@@ -103,9 +103,10 @@ export interface TradeIn {
 export interface Warranty {
     id: string;
     customer_name: string;
-    dni: string;
     customer_phone: string;
     product?: string | null;
+    purchase_date?: string | null;  // Fecha de compra (para calcular vencimiento)
+    card_image_url?: string | null; // Foto de la tarjeta de garantía (opcional)
     warranty_months?: number; // Plazo de garantía en meses (default 3)
     created_at: string;
 }
