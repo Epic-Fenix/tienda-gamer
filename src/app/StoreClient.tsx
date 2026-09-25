@@ -529,6 +529,7 @@ export default function Home() {
             <LogoScott />
             <p>© {new Date().getFullYear()} SCOTT GAMES · Lima, Perú. Todos los derechos reservados.</p>
             <div className="flex items-center gap-3">
+              <a href="/garantia" className="hover:text-white transition">Registrar garantía</a>
               <a href="/privacidad" className="hover:text-white transition">Privacidad</a>
               <a href="/terminos" className="hover:text-white transition">Términos</a>
               <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="text-[#2dd4bf] hover:text-white transition">Facebook</a>

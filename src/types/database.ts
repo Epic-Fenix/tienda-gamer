@@ -100,6 +100,15 @@ export interface TradeIn {
     created_at?: string;
 }
 
+export interface Warranty {
+    id: string;
+    customer_name: string;
+    dni: string;
+    customer_phone: string;
+    product?: string | null;
+    created_at: string;
+}
+
 export type BackorderStatus = 'pending' | 'notified' | 'completed';
 
 export interface Backorder {

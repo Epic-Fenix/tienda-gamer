@@ -17,6 +17,33 @@
         ],
         "createdAt": "2026-09-19T03:25:15.089Z",
         "reason": "Logo arcade neon intencional (Opcion B elegida por el dueno)"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "src/app/admin/page.tsx"
+        ],
+        "createdAt": "2026-09-19T04:36:29.987Z",
+        "reason": "Panel admin interno; tema slate/violeta intencional"
+      },
+      {
+        "rule": "gray-on-color",
+        "value": "*",
+        "files": [
+          "src/app/admin/page.tsx"
+        ],
+        "createdAt": "2026-09-19T04:36:30.138Z",
+        "reason": "Panel admin interno"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/app/admin/page.tsx"
+        ],
+        "createdAt": "2026-09-19T04:36:30.305Z",
+        "reason": "Card KPI Ganancia resaltada a proposito"
       }
     ]
   }

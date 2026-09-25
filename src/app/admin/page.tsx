@@ -8,19 +8,21 @@ import BannerManager from '@/components/admin/BannerManager';
 import CouponManager from '@/components/admin/CouponManager';
 import PackingSlipModal from '@/components/admin/PackingSlipModal';
 import TradeInManager from '@/components/admin/TradeInManager';
+import WarrantyManager from '@/components/admin/WarrantyManager';
 import CoverSearch from '@/components/admin/CoverSearch';
 import { ORDER_STATUS_OPTIONS, normalizeStatus } from '@/lib/orderStatus';
 import { SITE_URL, deliveryLabel, normalizePhone } from '@/lib/site';
 import { formatSoles } from '@/lib/payment';
 import LogoScott from '@/components/LogoScott';
 
-type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders';
+type AdminTab = 'inventario' | 'banners' | 'reservas' | 'backorders' | 'garantias';
 
 const ADMIN_TABS: { key: AdminTab; label: string }[] = [
     { key: 'inventario', label: '📦 Inventario / Stock' },
     { key: 'banners', label: '🖼️ Banners & Hero' },
     { key: 'reservas', label: '🧾 Reservas y Ventas' },
     { key: 'backorders', label: '⏳ Backorders / Encargos' },
+    { key: 'garantias', label: '🛡️ Garantías' },
 ];
 
 export default function AdminDashboard() {
@@ -993,6 +995,10 @@ export default function AdminDashboard() {
                 {/* Gestor de cupones de descuento */}
                 <CouponManager />
                 </>
+                )}
+
+                {tabActive === 'garantias' && (
+                <WarrantyManager />
                 )}
             </div>
 
