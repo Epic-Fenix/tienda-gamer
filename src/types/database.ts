@@ -67,6 +67,7 @@ export interface Banner {
     title: string;
     subtitle?: string | null;
     image_url?: string | null;
+    primary_text?: string | null; // Texto del botón principal (amarillo). Default: "Reservar Preventa"
     button_text?: string | null;
     link_url?: string | null;
     target_product_slug?: string | null;

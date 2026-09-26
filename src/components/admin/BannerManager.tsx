@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Banner } from '@/types/database';
 
-const emptyForm = { title: '', subtitle: '', image_url: '', button_text: '', link_url: '', target_product_slug: '', is_active: true };
+const emptyForm = { title: '', subtitle: '', image_url: '', primary_text: '', button_text: '', link_url: '', target_product_slug: '', is_active: true };
 
 export default function BannerManager() {
     const [banners, setBanners] = useState<Banner[]>([]);
@@ -53,6 +53,7 @@ export default function BannerManager() {
             title: form.title,
             subtitle: form.subtitle.trim() || null,
             image_url: form.image_url.trim() || null,
+            primary_text: form.primary_text.trim() || null,
             button_text: form.button_text.trim() || null,
             link_url: form.link_url.trim() || null,
             target_product_slug: form.target_product_slug.trim() || null,
@@ -78,6 +79,7 @@ export default function BannerManager() {
             title: b.title,
             subtitle: b.subtitle ?? '',
             image_url: b.image_url ?? '',
+            primary_text: b.primary_text ?? '',
             button_text: b.button_text ?? '',
             link_url: b.link_url ?? '',
             target_product_slug: b.target_product_slug ?? '',
@@ -138,8 +140,13 @@ export default function BannerManager() {
                             <input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white" placeholder="Descripción corta" />
                         </div>
                         <div>
-                            <label className="text-slate-400 block mb-1">Texto del botón</label>
-                            <input value={form.button_text} onChange={(e) => setForm({ ...form, button_text: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white" placeholder="Ver más" />
+                            <label className="text-slate-400 block mb-1">Texto del botón principal (amarillo)</label>
+                            <input value={form.primary_text} onChange={(e) => setForm({ ...form, primary_text: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white" placeholder="Reservar Preventa" />
+                            <p className="text-[10px] text-slate-500 mt-1">Vacío = &quot;Reservar Preventa&quot;. Ej: &quot;Ver PS5&quot;, &quot;Comprar ahora&quot;.</p>
+                        </div>
+                        <div>
+                            <label className="text-slate-400 block mb-1">Texto del botón secundario (gris)</label>
+                            <input value={form.button_text} onChange={(e) => setForm({ ...form, button_text: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white" placeholder="Ver Ofertas" />
                         </div>
                         <div>
                             <label className="text-slate-400 block mb-1">Enlace del botón</label>
@@ -148,7 +155,7 @@ export default function BannerManager() {
                         <div>
                             <label className="text-slate-400 block mb-1">Slug del producto (deep-link)</label>
                             <input value={form.target_product_slug} onChange={(e) => setForm({ ...form, target_product_slug: e.target.value })} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white" placeholder="ej. spider-man-2-ps5" />
-                            <p className="text-[10px] text-slate-500 mt-1">Al pulsar &quot;Ver Oferta / Reservar Preventa&quot; se abre la ficha de este producto.</p>
+                            <p className="text-[10px] text-slate-500 mt-1">El botón principal abre la ficha de este producto para reservar/comprar.</p>
                         </div>
                     </div>
                     <div>

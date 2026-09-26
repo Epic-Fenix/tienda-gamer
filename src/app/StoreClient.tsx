@@ -221,7 +221,7 @@ export default function Home() {
     const loadBanners = async () => {
       const { data } = await supabase.from('banners').select('*').eq('is_active', true).order('order_index', { ascending: true });
       if (data && data.length > 0) {
-        setSlides([...(data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, cta: b.button_text ?? undefined, href: b.link_url ?? undefined, targetSlug: b.target_product_slug ?? undefined })), ...PROMO_SLIDES]);
+        setSlides([...(data as Banner[]).map((b) => ({ title: b.title, subtitle: b.subtitle ?? '', image_url: b.image_url, primaryLabel: b.primary_text ?? undefined, cta: b.button_text ?? undefined, href: b.link_url ?? undefined, targetSlug: b.target_product_slug ?? undefined })), ...PROMO_SLIDES]);
       } else {
         setSlides([...DEFAULT_SLIDES, ...PROMO_SLIDES]);
       }
@@ -365,7 +365,7 @@ export default function Home() {
                       {!b.action && (b.href ? (
                         <a href={b.href} target="_blank" rel="noopener noreferrer" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver más'}</a>
                       ) : (
-                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">Ver Ofertas</button>
+                        <button onClick={() => handleHeroCta(b.targetSlug)} className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-sm transition">{b.cta || 'Ver Ofertas'}</button>
                       ))}
                     </div>
                   </div>
