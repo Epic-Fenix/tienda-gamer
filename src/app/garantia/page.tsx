@@ -98,7 +98,17 @@ export default function GarantiaPage() {
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 block mb-1">Fecha de compra *</label>
-                                <input required type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee]" />
+                                <input
+                                    required
+                                    type="date"
+                                    lang="es-PE"
+                                    value={purchaseDate}
+                                    onChange={(e) => setPurchaseDate(e.target.value)}
+                                    onClick={(e) => { try { (e.currentTarget as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* navegador sin showPicker */ } }}
+                                    max={new Date().toISOString().slice(0, 10)}
+                                    className="w-full bg-[#0b0b12] border border-[#242430] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#22d3ee] [color-scheme:dark]"
+                                />
+                                <p className="text-[10px] text-slate-500 mt-1">Escribe la fecha (dd/mm/aaaa) o tócala para abrir el calendario 📅</p>
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 block mb-1 flex justify-between"><span>Producto</span><span className="text-slate-500 text-[10px]">(opcional)</span></label>
